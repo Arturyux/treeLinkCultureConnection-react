@@ -2,3 +2,20 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html, body {
+  background-color: #935d8c;
+  background-image: linear-gradient(45deg, #e37682 15%, #5f4d93 85%);
+  background-attachment: fixed;
+  background-size: cover;
+}
+
+body {
+  background-color: #935d8c;
+  background-image: -moz-linear-gradient(45deg, #e37682 15%, #5f4d93 85%);
+  background-image: -webkit-linear-gradient(45deg, #e37682 15%, #5f4d93 85%);
+  background-image: -ms-linear-gradient(45deg, #e37682 15%, #5f4d93 85%);
+  background-image: linear-gradient(45deg, #e37682 15%, #5f4d93 85%);
+  background-attachment: fixed;
+  background-size: cover;
+}
