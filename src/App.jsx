@@ -1,4 +1,6 @@
 import './App.css'
+import SocialIcons from './Socialmedia.jsx'
+import './fontawesome';
 
 function App() {
   const links = [
@@ -38,6 +40,7 @@ function App() {
           </a>
           );
         })}
+        <SocialIcons />
       </div>
     </div>
   );
