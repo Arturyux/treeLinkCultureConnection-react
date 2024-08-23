@@ -1,35 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import './App.css';
 import SocialIcons from './Socialmedia.jsx';
-import Confetti from 'react-confetti';
+import ConfettiComponent from './ConfettiComponent';
+import CCLogo from './assets/CCLogo.png'
 import './fontawesome';
 
 function App() {
   const [showConfetti, setShowConfetti] = useState(false);
-  const [conOpacity, setConOpacity] = useState(1); 
-
-  useEffect(() => {
-    if (showConfetti) {
-      const opacityInterval = setInterval(() => {
-        setConOpacity((prev) => Math.max(prev - 0.01, 0)); 
-      }, 100); 
-
-      const stopConfetti = setTimeout(() => {
-        setShowConfetti(false);
-        clearInterval(opacityInterval);
-      }, 10000);
-
-      return () => {
-        clearTimeout(stopConfetti);
-        clearInterval(opacityInterval);
-      };
-    } else {
-      setConOpacity(1); 
-    }
-  }, [showConfetti]);
 
   const handleClick = () => {
     setShowConfetti(true);
+    setTimeout(() => setShowConfetti(false), 10000);
   };
 
   const links = [
@@ -52,13 +33,12 @@ function App() {
 
   return (
     <div className='flex justify-center items-center min-h-screen'>
-      {showConfetti && <Confetti 
-      opacity={conOpacity}/>}
+      <ConfettiComponent triggerConfetti={showConfetti} />
       <div className='max-w-xl mx-auto p-6'>
         <div className='h-70 w-70 mx-auto sm:w-96 sm:h-96'>
           <div className='aspect-square'>
             <img
-              src='https://activities.cultureconnection.se/images/logo.png'
+              src= {CCLogo}
               className='rounded-full object-cover object-center cursor-pointer'
               onClick={handleClick}
               alt='Logo'
