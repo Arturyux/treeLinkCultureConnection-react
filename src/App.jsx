@@ -31,7 +31,7 @@ function App() {
           return (
           <a key={index} href={item.link} target='_blank'>
             <div className={`sm:w-96 mx-auto ${item.color} mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom sm:w-64 hover:shadow-none transition-all hover:translate-x-1 tranlate-y-1`}>
-              <p className='text-xl font-bold '>
+              <p className='text-xl font-bold'>
               {item.text}
               </p>
             </div>
