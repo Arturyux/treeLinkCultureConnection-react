@@ -1,8 +1,37 @@
-import './App.css'
-import SocialIcons from './Socialmedia.jsx'
+import { useState, useEffect } from 'react';
+import './App.css';
+import SocialIcons from './Socialmedia.jsx';
+import Confetti from 'react-confetti';
 import './fontawesome';
 
 function App() {
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [conOpacity, setConOpacity] = useState(1); 
+
+  useEffect(() => {
+    if (showConfetti) {
+      const opacityInterval = setInterval(() => {
+        setConOpacity((prev) => Math.max(prev - 0.01, 0)); 
+      }, 100); 
+
+      const stopConfetti = setTimeout(() => {
+        setShowConfetti(false);
+        clearInterval(opacityInterval);
+      }, 10000);
+
+      return () => {
+        clearTimeout(stopConfetti);
+        clearInterval(opacityInterval);
+      };
+    } else {
+      setConOpacity(1); 
+    }
+  }, [showConfetti]);
+
+  const handleClick = () => {
+    setShowConfetti(true);
+  };
+
   const links = [
     {
       color: "bg-red-300",
@@ -22,24 +51,29 @@ function App() {
   ];
 
   return (
-    <div className='flex justify-center items-center'>
+    <div className='flex justify-center items-center min-h-screen'>
+      {showConfetti && <Confetti 
+      opacity={conOpacity}/>}
       <div className='max-w-xl mx-auto p-6'>
         <div className='h-70 w-70 mx-auto sm:w-96 sm:h-96'>
-        <div className='aspect-square'>
-          <img src='https://activities.cultureconnection.se/images/logo.png' className='rounded-full object-cover object-center'/>
+          <div className='aspect-square'>
+            <img
+              src='https://activities.cultureconnection.se/images/logo.png'
+              className='rounded-full object-cover object-center cursor-pointer'
+              onClick={handleClick}
+              alt='Logo'
+            />
+          </div>
         </div>
-        </div>
-        {links.map((item, index) => {
-          return (
-          <a key={index} href={item.link} target='_blank'>
+        {links.map((item, index) => (
+          <a key={index} href={item.link} target='_blank' rel='noopener noreferrer'>
             <div className={`sm:w-96 mx-auto ${item.color} mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom sm:w-64 hover:shadow-none transition-all hover:translate-x-1 tranlate-y-1`}>
               <p className='text-xl font-bold'>
-              {item.text}
+                {item.text}
               </p>
             </div>
           </a>
-          );
-        })}
+        ))}
         <SocialIcons />
       </div>
     </div>
