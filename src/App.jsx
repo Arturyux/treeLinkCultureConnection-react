@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import './App.css';
 import SocialIcons from './Socialmedia.jsx';
 import ConfettiComponent from './ConfettiComponent';
@@ -7,29 +7,23 @@ import './fontawesome';
 
 function App() {
   const [showConfetti, setShowConfetti] = useState(false);
+  const [links, setLinks] = useState([]);
 
   const handleClick = () => {
     setShowConfetti(true);
     setTimeout(() => setShowConfetti(false), 10000);
   };
+  
 
-  const links = [
-    {
-      color: "bg-red-300",
-      text: "Bylaws",
-      link: "https://bylaws.cultureconnection.se"
-    },
-    {
-      color: "bg-yellow-100",
-      text: "Normal size text",
-      link: "https://bylaws.cultureconnection.se"
-    },
-    {
-      color: "bg-blue-400",
-      text: "Lets see how long can it go because idk",
-      link: "https://bylaws.cultureconnection.se"
-    },
-  ];
+  useEffect(() => {
+    fetch('/links.json')
+      .then(response => response.json())
+      .then(data => {
+        console.log(data);  // Check if color is being fetched correctly
+        setLinks(data);
+      })
+      .catch(error => console.error('Error fetching links:', error));
+  }, []);
 
   return (
     <div className='flex justify-center items-center min-h-screen'>
@@ -38,7 +32,7 @@ function App() {
         <div className='h-70 w-70 mx-auto sm:w-96 sm:h-96'>
           <div className='aspect-square'>
             <img
-              src= {CCLogo}
+              src={CCLogo}
               className='rounded-full object-cover object-center cursor-pointer'
               onClick={handleClick}
               alt='Logo'
@@ -46,8 +40,8 @@ function App() {
           </div>
         </div>
         {links.map((item, index) => (
-          <a key={index} href={item.link} target='_blank' rel='noopener noreferrer'>
-            <div className={`sm:w-96 mx-auto ${item.color} mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom sm:w-64 hover:shadow-none transition-all hover:translate-x-1 tranlate-y-1`}>
+          <a key={index} href={item.link} target='_blank'>
+            <div className={`sm:w-96 mx-auto ${item.color} mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom sm:w-64 hover:shadow-none transition-all hover:translate-x-1 translate-y-1`}>
               <p className='text-xl font-bold'>
                 {item.text}
               </p>
