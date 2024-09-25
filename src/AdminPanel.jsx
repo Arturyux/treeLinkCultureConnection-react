@@ -34,12 +34,23 @@ function AdminPanel() {
 
   const handleLogin = (e) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'password') {
-      localStorage.setItem('isAuthenticated', 'true');
-      setIsAuthenticated(true);
-    } else {
-      alert('Incorrect username or password');
-    }
+  
+    // Fetch the credentials from the server
+    fetch('http://77.105.211.220:3000/login')
+      .then(response => response.json())
+      .then(data => {
+        const { username: storedUsername, password: storedPassword } = data;
+        if (username === storedUsername && password === storedPassword) {
+          localStorage.setItem('isAuthenticated', 'true');
+          setIsAuthenticated(true);
+        } else {
+          alert('Incorrect username or password');
+        }
+      })
+      .catch(error => {
+        console.error('Error fetching credentials:', error);
+        alert('Failed to login. Please try again.');
+      });
   };
 
   const handleLogout = () => {
@@ -68,7 +79,6 @@ function AdminPanel() {
   // Handle editing a link
   const handleEditLink = (index) => {
     if (editIndex === index) {
-      // If already editing this link, close the edit form
       setEditIndex(null);
       setEditedLink({ color: '', text: '', link: '' });
     } else {
@@ -104,7 +114,6 @@ function AdminPanel() {
       .then(() => {
         const updatedLinks = links.filter((_, i) => i !== index);
         setLinks(updatedLinks);
-        // If deleting the link currently being edited, reset editIndex
         if (editIndex === index) {
           setEditIndex(null);
           setEditedLink({ color: '', text: '', link: '' });
@@ -147,8 +156,8 @@ function AdminPanel() {
   }
 
   return (
-    <div className="p-6">
-      <h2 className="text-3xl mb-4">Admin Dashboard</h2>
+    <div className="p-6 text-center">
+      <h2 className="text-3xl font-semibold mb-4">Link Tree Editing</h2>
       <button onClick={handleLogout} className="bg-red-500 text-white p-2 rounded mb-4">
         Log Out
       </button>
@@ -166,7 +175,7 @@ function AdminPanel() {
             </a>
 
             {/* Edit, Delete, and About buttons */}
-            <div className="flex justify-center space-x-4 mt-2">
+            <div className="flex justify-center space-x-4 mt-2 p-2">
               <button
                 onClick={() => handleEditLink(index)}
                 className="bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600 transition-all duration-200"
@@ -241,7 +250,7 @@ function AdminPanel() {
 
       {/* Add New Link Form */}
       <div className="mt-6">
-        <h3 className="text-2xl mb-4">Add New Link</h3>
+        <h3 className="text-2xl font-semibold mb-4">Add New Link</h3>
 
         {/* Live Button Preview */}
         <div className="mb-6">
@@ -302,7 +311,15 @@ function AdminPanel() {
           <input
             type="text"
             value={newLink.link}
-            onChange={(e) => setNewLink({ ...newLink, link: e.target.value })}
+            onChange={(e) => {
+              const inputValue = e.target.value;
+              // Ensure the link always starts with 'https://'
+              if (!inputValue.startsWith('https://')) {
+                setNewLink({ ...newLink, link: `https://${inputValue}` });
+              } else {
+                setNewLink({ ...newLink, link: inputValue });
+              }
+            }}
             className="border border-gray-300 p-2 w-full rounded"
           />
         </div>
