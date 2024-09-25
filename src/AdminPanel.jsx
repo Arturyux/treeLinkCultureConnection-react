@@ -18,8 +18,9 @@ function AdminPanel() {
     }
   }, []);
 
+  // Fetching links from the API
   useEffect(() => {
-    fetch('/links.json')
+    fetch('http://77.105.211.220:3000/links')
       .then(response => response.json())
       .then(data => setLinks(data))
       .catch(error => console.error('Error fetching links:', error));
@@ -41,27 +42,60 @@ function AdminPanel() {
     navigate('/');
   };
 
+  // Add new link to the server
   const handleAddLink = () => {
-    setLinks([...links, newLink]);
-    setNewLink({ color: '', text: '', link: '' });
+    fetch('http://77.105.211.220:3000/links', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newLink),
+    })
+      .then(response => response.json())
+      .then(data => {
+        setLinks([...links, data]);
+        setNewLink({ color: '', text: '', link: '' });
+      })
+      .catch(error => console.error('Error adding link:', error));
   };
 
+  // Set the current link for editing
   const handleEditLink = (index) => {
     setNewLink(links[index]);
     setEditIndex(index);
   };
 
+  // Save changes to the link on the server
   const handleSaveEdit = () => {
-    const updatedLinks = [...links];
-    updatedLinks[editIndex] = newLink;
-    setLinks(updatedLinks);
-    setNewLink({ color: '', text: '', link: '' });
-    setEditIndex(null);
+    const updatedLink = { ...newLink };
+
+    fetch(`http://77.105.211.220:3000/links/${links[editIndex].id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedLink),
+    })
+      .then(() => {
+        const updatedLinks = [...links];
+        updatedLinks[editIndex] = updatedLink;
+        setLinks(updatedLinks);
+        setNewLink({ color: '', text: '', link: '' });
+        setEditIndex(null);
+      })
+      .catch(error => console.error('Error saving link:', error));
   };
 
+  // Delete link from the server
   const handleDeleteLink = (index) => {
-    const updatedLinks = links.filter((_, i) => i !== index);
-    setLinks(updatedLinks);
+    fetch(`http://77.105.211.220:3000/links/${links[index].id}`, {
+      method: 'DELETE',
+    })
+      .then(() => {
+        const updatedLinks = links.filter((_, i) => i !== index);
+        setLinks(updatedLinks);
+      })
+      .catch(error => console.error('Error deleting link:', error));
   };
 
   if (!isAuthenticated) {
@@ -103,8 +137,6 @@ function AdminPanel() {
       <button onClick={handleLogout} className="bg-red-500 text-white p-2 rounded mb-4">
         Log Out
       </button>
-
-      {/* Link Management Section */}
       <div>
         <h3 className="text-2xl mb-4">Manage Links</h3>
         {links.map((link, index) => (
@@ -127,8 +159,6 @@ function AdminPanel() {
           </div>
         ))}
       </div>
-
-      {/* Add/Edit Form */}
       <div className="mt-6">
         <h3 className="text-2xl mb-4">{editIndex !== null ? 'Edit Link' : 'Add New Link'}</h3>
         <div className="mb-4">
