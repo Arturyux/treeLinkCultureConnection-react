@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import ColorPicker from './ColorPicker';
 
 function AdminPanel() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -7,14 +8,11 @@ function AdminPanel() {
   const [password, setPassword] = useState('');
   const [links, setLinks] = useState([]);
   const [newLink, setNewLink] = useState({ color: '', text: '', link: '' });
-
-  const [editIndex, setEditIndex] = useState(null); // To track which link is being edited
-  const [editedLink, setEditedLink] = useState({ color: '', text: '', link: '' }); // To store the edited link
-
+  const [showColorPicker, setShowColorPicker] = useState(false);
+  const [editIndex, setEditIndex] = useState(null); 
+  const [editedLink, setEditedLink] = useState({ color: '', text: '', link: '' }); 
   const [showAboutIndex, setShowAboutIndex] = useState(null);
-
   const navigate = useNavigate();
-
   const handleAboutLink = (index) => {
     setShowAboutIndex(showAboutIndex === index ? null : index);
   };
@@ -189,7 +187,7 @@ function AdminPanel() {
               </button>
             </div>
 
-            {/* About Section: Show details if "About" button is clicked */}
+            {/* About Section*/}
             {showAboutIndex === index && (
               <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-lg">
                 <p><strong>Color:</strong> {item.color}</p>
@@ -198,7 +196,7 @@ function AdminPanel() {
               </div>
             )}
 
-            {/* Edit Section: Show edit form if "Edit" button is clicked */}
+            {/* Edit Section*/}
             {editIndex === index && (
               <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-lg">
                 <h4 className="text-xl font-semibold mb-4">Edit Link</h4>
@@ -244,22 +242,59 @@ function AdminPanel() {
       {/* Add New Link Form */}
       <div className="mt-6">
         <h3 className="text-2xl mb-4">Add New Link</h3>
+
+        {/* Live Button Preview */}
+        <div className="mb-6">
+          <a href={newLink.link || '#'} target="_blank" rel="noopener noreferrer">
+            <div className={`sm:w-96 mx-auto ${newLink.color} mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom sm:w-64 hover:shadow-none transition-all hover:translate-x-1 translate-y-1`}>
+              <p className="text-xl font-bold">
+                {newLink.text || 'Preview'}
+              </p>
+            </div>
+          </a>
+        </div>
+
         <div className="mb-4">
           <label className="block mb-2">Color</label>
-          <input
-            type="text"
-            value={newLink.color}
-            onChange={(e) => setNewLink({ ...newLink, color: e.target.value })}
-            className="border border-gray-300 p-2 w-full"
-          />
+          <div className="flex items-center">
+            <input
+              type="text"
+              value={newLink.color}
+              onChange={(e) => setNewLink({ ...newLink, color: e.target.value })}
+              className="border border-gray-300 p-2 w-full rounded"
+            />
+            <div
+              className={`ml-2 w-10 h-10 rounded border ${newLink.color}`}
+              title={newLink.color}
+            ></div>
+            <button
+              type="button"
+              onClick={() => setShowColorPicker(!showColorPicker)}
+              className="ml-2 bg-gray-200 p-2 rounded border border-gray-300"
+            >
+              Choose Color
+            </button>
+          </div>
+          {showColorPicker && (
+            <div className="mt-2 p-2 border border-gray-300 rounded bg-white shadow-lg">
+              <ColorPicker
+                onSelectColor={(colorClass) => {
+                  setNewLink({ ...newLink, color: colorClass });
+                  setShowColorPicker(false);
+                }}
+              />
+            </div>
+          )}
         </div>
+
+        {/* Text and Link Fields */}
         <div className="mb-4">
           <label className="block mb-2">Text</label>
           <input
             type="text"
             value={newLink.text}
             onChange={(e) => setNewLink({ ...newLink, text: e.target.value })}
-            className="border border-gray-300 p-2 w-full"
+            className="border border-gray-300 p-2 w-full rounded"
           />
         </div>
         <div className="mb-4">
@@ -268,18 +303,19 @@ function AdminPanel() {
             type="text"
             value={newLink.link}
             onChange={(e) => setNewLink({ ...newLink, link: e.target.value })}
-            className="border border-gray-300 p-2 w-full"
+            className="border border-gray-300 p-2 w-full rounded"
           />
         </div>
         <button
           onClick={handleAddLink}
-          className="bg-blue-500 text-white p-2 rounded"
+          className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition-all duration-200"
         >
           Add Link
         </button>
       </div>
     </div>
   );
-}
+};
+
 
 export default AdminPanel;
