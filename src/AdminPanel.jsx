@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { HexColorPicker } from "react-colorful";
 import ColorPicker from './ColorPicker';
 
 function AdminPanel() {
@@ -273,17 +274,20 @@ function AdminPanel() {
               className="border border-gray-300 p-2 w-full rounded"
             />
             <div
-              className={`ml-2 w-10 h-10 rounded border ${newLink.color}`}
-              title={newLink.color}
-            ></div>
-            <button
-              type="button"
               onClick={() => setShowColorPicker(!showColorPicker)}
-              className="ml-2 bg-gray-200 p-2 rounded border border-gray-300"
-            >
-              Choose Color
-            </button>
+              className="ml-2 w-10 h-10 rounded border"
+              title={newLink.color}
+              style={{ backgroundColor: newLink.color }}
+            ></div>
           </div>
+          {showColorPicker && (
+            <div className="mt-2 p-2 border border-gray-300 rounded bg-white shadow-lg">
+              <HexColorPicker
+                color={newLink.color}
+                onChange={(color) => setNewLink({ ...newLink, color })}
+              />
+            </div>
+          )}
           {showColorPicker && (
             <div className="mt-2 p-2 border border-gray-300 rounded bg-white shadow-lg">
               <ColorPicker
