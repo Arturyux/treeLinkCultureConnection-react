@@ -48,7 +48,7 @@ function ColorPicker({ onSelectColor }) {
   ];
 
   return (
-    <div className="grid grid-cols-5 gap-2">
+    <div className="p-2 col-auto flex flex-wrap gap-2">
       {colors.map((colorClass) => (
         <div
           key={colorClass}
