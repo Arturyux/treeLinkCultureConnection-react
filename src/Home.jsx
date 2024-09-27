@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import './App.css';
 import SocialIcons from './Socialmedia.jsx';
 import ConfettiComponent from './ConfettiComponent';
@@ -7,10 +8,21 @@ import CCLogo from './assets/CCLogo.png';
 function Home() {
   const [showConfetti, setShowConfetti] = useState(false);
   const [links, setLinks] = useState([]);
-
+  const [clickCount, setClickCount] = useState(0);
+  const [timer, setTimer] = useState(null);
+  const navigate = useNavigate();
+  
   const handleClick = () => {
     setShowConfetti(true);
+    setClickCount(prevCount => prevCount + 1);
     setTimeout(() => setShowConfetti(false), 10000);
+    if (timer) {
+      clearTimeout(timer);
+    }
+    const newTimer = setTimeout(() => {
+      setClickCount(0);
+    }, 2000);
+    setTimer(newTimer);
   };
 
   useEffect(() => {
@@ -21,6 +33,12 @@ function Home() {
       })
       .catch(error => console.error('Error fetching links:', error));
   }, []);
+
+  useEffect(() => {
+    if (clickCount === 5) {
+      navigate('/admincc');
+    }
+  }, [clickCount, navigate]);
 
   return (
     <div className='flex justify-center items-center min-h-screen'>
