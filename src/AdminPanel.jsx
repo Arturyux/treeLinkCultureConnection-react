@@ -267,29 +267,34 @@ function AdminPanel() {
         </div>
 
         <div className="mb-4">
-          <label className="block mb-2">Color</label>
-          <div className="flex items-center">
-            <input
-              type="text"
-              value={newLink.color}
-              onChange={(e) => setNewLink({ ...newLink, color: e.target.value.trim() })}
-              className="border border-gray-300 p-2 w-full rounded"
-            />
+          <label className="block text-2xl font-semibold mb-4">Color</label>
+          
+          {/* Color Input Field */}
+          <input
+            type="text"
+            value={newLink.color}
+            onChange={(e) => setNewLink({ ...newLink, color: e.target.value.trim() })}
+            className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+            placeholder="Enter Tailwind class or Hex code"
+          />
+          
+          {/* Buttons for Color Picker Options */}
+          <div className="flex justify-center mt-2 space-x-4">
             <button
               onClick={() => {
                 setShowHexColorPicker(!showHexColorPicker);
-                setShowRecommendedColorPicker(false); // Close the other picker
+                setShowRecommendedColorPicker(false);
               }}
-              className="ml-2 p-2 bg-gray-200 rounded border"
+              className={`px-4 py-2 bg-orange-200 rounded border-2 border-black`}
             >
               Hex
             </button>
             <button
               onClick={() => {
                 setShowRecommendedColorPicker(!showRecommendedColorPicker);
-                setShowHexColorPicker(false); // Close the other picker
+                setShowHexColorPicker(false);
               }}
-              className="ml-2 p-2 bg-gray-200 rounded border"
+              className={`px-4 py-2 bg-orange-200 rounded border-2 border-black`}
             >
               Recommended
             </button>
@@ -297,38 +302,54 @@ function AdminPanel() {
           
           {/* HexColorPicker */}
           {showHexColorPicker && (
-            <div className="mt-2 p-2 border border-gray-300 rounded bg-white shadow-lg">
+            <div className="mt-4 p-4 border border-gray-300 rounded bg-white shadow-lg inline-block">
               <HexColorPicker
                 color={newLink.color}
                 onChange={(color) => setNewLink({ ...newLink, color })}
               />
+              <div className="mt-2 text-center">
+                <button
+                  onClick={() => setShowHexColorPicker(false)}
+                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           )}
           
           {/* Custom ColorPicker */}
           {showRecommendedColorPicker && (
-            <div className="mt-2 p-2 border border-gray-300 rounded bg-white shadow-lg">
+            <div className="mt-4 p-4 border border-gray-300 rounded bg-white shadow-lg inline-block">
               <ColorPicker
                 onSelectColor={(colorClass) => {
                   setNewLink({ ...newLink, color: colorClass });
                   setShowRecommendedColorPicker(false);
                 }}
               />
+              <div className="mt-2 text-center">
+                <button
+                  onClick={() => setShowRecommendedColorPicker(false)}
+                  className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-200"
+                >
+                  Close
+                </button>
+              </div>
             </div>
           )}
         </div>
         {/* Text and Link Fields */}
         <div className="mb-4">
-          <label className="block mb-2">Text</label>
+          <label className="block text-2xl font-semibold mb-4">Text</label>
           <input
             type="text"
             value={newLink.text}
             onChange={(e) => setNewLink({ ...newLink, text: e.target.value })}
-            className="border border-gray-300 p-2 w-full rounded"
+            className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
           />
         </div>
         <div className="mb-4">
-          <label className="block mb-2">Link</label>
+          <label className="block text-2xl font-semibold mb-4">Link</label>
           <input
             type="text"
             value={newLink.link}
@@ -341,7 +362,7 @@ function AdminPanel() {
                 setNewLink({ ...newLink, link: inputValue });
               }
             }}
-            className="border border-gray-300 p-2 w-full rounded"
+            className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
           />
         </div>
         <button

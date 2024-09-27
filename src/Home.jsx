@@ -56,11 +56,16 @@ function Home() {
         </div>
         {links.map((item, index) => (
           <a key={index} href={item.link} target='_blank' rel='noopener noreferrer'>
-            <div className={`sm:w-96 mx-auto ${item.color} mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom sm:w-64 hover:shadow-none transition-all hover:translate-x-1 translate-y-1`}>
-              <p className='text-xl font-bold'>
-                {item.text}
-              </p>
-            </div>
+              <div
+                className={`sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1 ${
+                  item.color.startsWith('#') ? '' : item.color
+                }`}
+                style={item.color.startsWith('#') ? { backgroundColor: item.color } : {}}
+              >
+                <p className="text-xl font-bold">
+                  {item.text}
+                </p>
+              </div>
           </a>
         ))}
         <SocialIcons />
