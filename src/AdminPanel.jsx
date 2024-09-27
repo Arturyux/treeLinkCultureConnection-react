@@ -4,12 +4,13 @@ import { HexColorPicker } from "react-colorful";
 import ColorPicker from './ColorPicker';
 
 function AdminPanel() {
+  const [showHexColorPicker, setShowHexColorPicker] = useState(false);
+  const [showRecommendedColorPicker, setShowRecommendedColorPicker] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [links, setLinks] = useState([]);
   const [newLink, setNewLink] = useState({ color: '', text: '', link: '' });
-  const [showColorPicker, setShowColorPicker] = useState(false);
   const [editIndex, setEditIndex] = useState(null); 
   const [editedLink, setEditedLink] = useState({ color: '', text: '', link: '' }); 
   const [showAboutIndex, setShowAboutIndex] = useState(null);
@@ -169,7 +170,7 @@ function AdminPanel() {
             {/* Link button */}
             <a href={item.link} target='_blank' rel='noopener noreferrer'>
               <div
-                className={`sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom sm:w-64 hover:shadow-none transition-all hover:translate-x-1 translate-y-1 ${
+                className={`sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1 ${
                   item.color.startsWith('#') ? '' : item.color
                 }`}
                 style={item.color.startsWith('#') ? { backgroundColor: item.color } : {}}
@@ -253,7 +254,7 @@ function AdminPanel() {
         <div className="mb-6">
           <a href={newLink.link || '#'} target="_blank" rel="noopener noreferrer">
             <div
-              className={`sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom sm:w-64 hover:shadow-none transition-all hover:translate-x-1 translate-y-1 ${
+              className={`sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1 ${
                 newLink.color.startsWith('#') ? '' : newLink.color
               }`}
               style={newLink.color.startsWith('#') ? { backgroundColor: newLink.color } : {}}
@@ -271,17 +272,31 @@ function AdminPanel() {
             <input
               type="text"
               value={newLink.color}
-              onChange={(e) => setNewLink({ ...newLink, color: e.target.value })}
+              onChange={(e) => setNewLink({ ...newLink, color: e.target.value.trim() })}
               className="border border-gray-300 p-2 w-full rounded"
             />
-            <div
-              onClick={() => setShowColorPicker(!showColorPicker)}
-              className="ml-2 w-10 h-10 rounded border"
-              title={newLink.color}
-              style={{ backgroundColor: newLink.color }}
-            ></div>
+            <button
+              onClick={() => {
+                setShowHexColorPicker(!showHexColorPicker);
+                setShowRecommendedColorPicker(false); // Close the other picker
+              }}
+              className="ml-2 p-2 bg-gray-200 rounded border"
+            >
+              Hex
+            </button>
+            <button
+              onClick={() => {
+                setShowRecommendedColorPicker(!showRecommendedColorPicker);
+                setShowHexColorPicker(false); // Close the other picker
+              }}
+              className="ml-2 p-2 bg-gray-200 rounded border"
+            >
+              Recommended
+            </button>
           </div>
-          {showColorPicker && (
+          
+          {/* HexColorPicker */}
+          {showHexColorPicker && (
             <div className="mt-2 p-2 border border-gray-300 rounded bg-white shadow-lg">
               <HexColorPicker
                 color={newLink.color}
@@ -289,18 +304,19 @@ function AdminPanel() {
               />
             </div>
           )}
-          {showColorPicker && (
+          
+          {/* Custom ColorPicker */}
+          {showRecommendedColorPicker && (
             <div className="mt-2 p-2 border border-gray-300 rounded bg-white shadow-lg">
               <ColorPicker
                 onSelectColor={(colorClass) => {
                   setNewLink({ ...newLink, color: colorClass });
-                  setShowColorPicker(false);
+                  setShowRecommendedColorPicker(false);
                 }}
               />
             </div>
           )}
         </div>
-
         {/* Text and Link Fields */}
         <div className="mb-4">
           <label className="block mb-2">Text</label>
