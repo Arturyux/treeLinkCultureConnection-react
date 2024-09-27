@@ -168,8 +168,13 @@ function AdminPanel() {
           <div key={index}>
             {/* Link button */}
             <a href={item.link} target='_blank' rel='noopener noreferrer'>
-              <div className={`sm:w-96 mx-auto ${item.color} mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom sm:w-64 hover:shadow-none transition-all hover:translate-x-1 translate-y-1`}>
-                <p className='text-xl font-bold'>
+              <div
+                className={`sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom sm:w-64 hover:shadow-none transition-all hover:translate-x-1 translate-y-1 ${
+                  item.color.startsWith('#') ? '' : item.color
+                }`}
+                style={item.color.startsWith('#') ? { backgroundColor: item.color } : {}}
+              >
+                <p className="text-xl font-bold">
                   {item.text}
                 </p>
               </div>
@@ -211,15 +216,6 @@ function AdminPanel() {
               <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-lg">
                 <h4 className="text-xl font-semibold mb-4">Edit Link</h4>
                 <div className="mb-4">
-                  <label className="block mb-2">Color</label>
-                  <input
-                    type="text"
-                    value={editedLink.color}
-                    onChange={(e) => setEditedLink({ ...editedLink, color: e.target.value })}
-                    className="border border-gray-300 p-2 w-full rounded"
-                  />
-                </div>
-                <div className="mb-4">
                   <label className="block mb-2">Text</label>
                   <input
                     type="text"
@@ -256,7 +252,12 @@ function AdminPanel() {
         {/* Live Button Preview */}
         <div className="mb-6">
           <a href={newLink.link || '#'} target="_blank" rel="noopener noreferrer">
-            <div className={`sm:w-96 mx-auto ${newLink.color} mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom sm:w-64 hover:shadow-none transition-all hover:translate-x-1 translate-y-1`}>
+            <div
+              className={`sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom sm:w-64 hover:shadow-none transition-all hover:translate-x-1 translate-y-1 ${
+                newLink.color.startsWith('#') ? '' : newLink.color
+              }`}
+              style={newLink.color.startsWith('#') ? { backgroundColor: newLink.color } : {}}
+            >
               <p className="text-xl font-bold">
                 {newLink.text || 'Preview'}
               </p>
