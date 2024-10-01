@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { HexColorPicker } from "react-colorful";
 import ColorPicker from "./ColorPicker";
+import CCLogo from "./assets/CCLogo.png";
 
 function AdminPanel() {
   const [showHexColorPicker, setShowHexColorPicker] = useState(false);
@@ -137,35 +138,45 @@ const handleLogin = (e) => {
       })
       .catch((error) => console.error("Error deleting link:", error));
   };
+  
 
   if (!isAuthenticated) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <form onSubmit={handleLogin} className="p-6 bg-white rounded shadow-md">
-          <h2 className="text-2xl mb-4 text-center">Admin Login</h2>
-          <div className="mb-4">
-            <label className="block mb-2">Username</label>
+    return (  
+      <div className="flex-col justify-center columns-1 items-center min-h-screen">
+        <div className="h-70 w-70 mx-auto sm:w-96 sm:h-96">
+          <div className="aspect-square">
+            <img
+              src={CCLogo}
+              className="rounded-full"
+              alt="Logo"
+            />
+          </div>
+        </div>
+        <form onSubmit={handleLogin} className="p-12 text-center">
+          <h2 className="text-2xl mb-4 text-center font-bold">Admin Login</h2>
+          <div className="mb-2">
             <input
               type="text"
+              placeholder="Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="border border-gray-300 p-2 w-full"
+              className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none placeholder text-2xl"
               required
             />
           </div>
-          <div className="mb-4">
-            <label className="block mb-2">Password</label>
+          <div className="mb-2">
             <input
               type="password"
+              placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="border border-gray-300 p-2 w-full"
+              className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none placeholder text-2xl"
               required
             />
           </div>
           <button
             type="submit"
-            className="bg-blue-500 text-white p-2 w-full rounded"
+            className="bg-blue-500 sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1 text-2xl font-bold"
           >
             Log In
           </button>
