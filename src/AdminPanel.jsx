@@ -184,7 +184,6 @@ const handleLogin = (e) => {
       </div>
     );
   }
-
   return (
     <div className="p-6 text-center">
       <h2 className="text-3xl font-semibold mb-4">Link Tree Editing</h2>
@@ -329,14 +328,13 @@ const handleLogin = (e) => {
           {/* Color Input Field */}
           <input
             type="text"
+            placeholder="Enter Tailwind color code or Hex code"
             value={newLink.color}
             onChange={(e) =>
               setNewLink({ ...newLink, color: e.target.value.trim() })
             }
             className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
-            placeholder="Enter Tailwind class or Hex code"
           />
-
           {/* Buttons for Color Picker Options */}
           <div className="flex justify-center mt-2 space-x-4">
             <button
@@ -399,18 +397,18 @@ const handleLogin = (e) => {
         </div>
         {/* Text and Link Fields */}
         <div className="mb-4">
-          <label className="block text-2xl font-semibold mb-4">Text</label>
           <input
             type="text"
+            placeholder="Text"
             value={newLink.text}
             onChange={(e) => setNewLink({ ...newLink, text: e.target.value })}
-            className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+            className="placeholder font-bold sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
           />
         </div>
         <div className="mb-4">
-          <label className="block text-2xl font-semibold mb-4">Link</label>
           <input
             type="text"
+            placeholder="Link https://"
             value={newLink.link}
             onChange={(e) => {
               const inputValue = e.target.value;
@@ -421,7 +419,7 @@ const handleLogin = (e) => {
                 setNewLink({ ...newLink, link: inputValue });
               }
             }}
-            className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+            className="placeholder font-bold sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
           />
         </div>
         <button
