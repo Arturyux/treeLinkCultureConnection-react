@@ -20,45 +20,54 @@ function AdminPanel() {
   });
   const [showAboutIndex, setShowAboutIndex] = useState(null);
   const navigate = useNavigate();
+
   const handleAboutLink = (index) => {
     setShowAboutIndex(showAboutIndex === index ? null : index);
   };
 
   useEffect(() => {
     const auth = localStorage.getItem("isAuthenticated");
-    if (auth) {
+    if (auth === "true") {
       setIsAuthenticated(true);
     }
   }, []);
 
   // Fetching links from the API
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_URL}/links`)
-      .then((response) => response.json())
-      .then((data) => setLinks(data))
-      .catch((error) => console.error("Error fetching links:", error));
-  }, []);
+    if (isAuthenticated) {
+      fetch(`${import.meta.env.VITE_API_URL}/links`)
+        .then((response) => response.json())
+        .then((data) => setLinks(data))
+        .catch((error) => console.error("Error fetching links:", error));
+    }
+  }, [isAuthenticated]);
 
-  const handleLogin = (e) => {
-    e.preventDefault();
+ // handleLogin function in AdminPanel component
+const handleLogin = (e) => {
+  e.preventDefault();
 
-    // Fetch the credentials from the server
-    fetch(`${import.meta.env.VITE_API_URL}/login`)
-      .then((response) => response.json())
-      .then((data) => {
-        const { username: storedUsername, password: storedPassword } = data;
-        if (username === storedUsername && password === storedPassword) {
-          localStorage.setItem("isAuthenticated", "true");
-          setIsAuthenticated(true);
-        } else {
-          alert("Incorrect username or password");
-        }
-      })
-      .catch((error) => {
-        console.error("Error fetching credentials:", error);
-        alert("Failed to login. Please try again.");
-      });
-  };
+  // Send username and password to the server
+  fetch(`${import.meta.env.VITE_API_URL}/login`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ username, password }),
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      if (data.success) {
+        localStorage.setItem("isAuthenticated", "true");
+        setIsAuthenticated(true);
+      } else {
+        alert("STOP");
+      }
+    })
+    .catch((error) => {
+      console.error("Error during authentication:", error);
+      alert("Failed to login. Please try again.");
+    });
+};
 
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
