@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { HexColorPicker } from "react-colorful";
 import ColorPicker from "./ColorPicker";
+import SocialIcons from "./Socialmedia.jsx";
 import CCLogo from "./assets/CCLogo.png";
 
 function AdminPanel() {
@@ -152,35 +153,38 @@ const handleLogin = (e) => {
             />
           </div>
         </div>
-        <form onSubmit={handleLogin} className="p-12 text-center">
-          <h2 className="text-2xl mb-4 text-center font-bold">Admin Login</h2>
-          <div className="mb-2">
-            <input
-              type="text"
-              placeholder="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none placeholder text-2xl"
-              required
-            />
+          <div className="bg-white p-6 pb-10 w-96 mx-auto rounded-lg border-2 border-black focus:outline-none placeholder">
+          <form onSubmit={handleLogin} className="text-center">
+            <h2 className="text-2xl text-center font-bold">Admin Login</h2>
+            <div className="mb-2">
+              <input
+                type="text"
+                placeholder="Username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="sm:w-90 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none placeholder text-2xl"
+                required
+              />
+            </div>
+            <div className="mb-2">
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="sm:w-90 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none placeholder text-2xl"
+                required
+              />
+            </div>
+            <button
+              type="submit"
+              className="bg-blue-500 py-3 w-[100%] text-center rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1 text-2xl font-bold"
+            >
+              Log In
+            </button>
+          </form>
           </div>
-          <div className="mb-2">
-            <input
-              type="password"
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none placeholder text-2xl"
-              required
-            />
-          </div>
-          <button
-            type="submit"
-            className="bg-blue-500 sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1 text-2xl font-bold"
-          >
-            Log In
-          </button>
-        </form>
+          <SocialIcons />
       </div>
     );
   }

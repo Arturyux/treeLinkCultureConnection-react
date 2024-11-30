@@ -3,7 +3,7 @@ import './fontawesome';
 
 const SocialIcons = () => {
   return (
-    <div className="flex space-x-4 justify-center mt-4 gap-4 p-4">
+    <div className="flex space-x-4 justify-center mt-4 gap-4 p-4 pb-12">
       <a href="https://instagram.com/cultureconnectionlnu" className="text-white hover:text-gray-900" target='_blank'>
         <FontAwesomeIcon icon={['fab', 'instagram']} size="2x" />
       </a>
