@@ -23,6 +23,7 @@ function AdminPanel() {
   const [showAboutIndex, setShowAboutIndex] = useState(null);
   const navigate = useNavigate();
 
+  // Show/hide "about" info for each link
   const handleAboutLink = (index) => {
     setShowAboutIndex(showAboutIndex === index ? null : index);
   };
@@ -44,33 +45,34 @@ function AdminPanel() {
     }
   }, [isAuthenticated]);
 
- // handleLogin function in AdminPanel component
-const handleLogin = (e) => {
-  e.preventDefault();
+  // handleLogin function in AdminPanel component
+  const handleLogin = (e) => {
+    e.preventDefault();
 
-  // Send username and password to the server
-  fetch(`${import.meta.env.VITE_API_URL}/login`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ username, password }),
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      if (data.success) {
-        localStorage.setItem("isAuthenticated", "true");
-        setIsAuthenticated(true);
-      } else {
-        alert("STOP");
-      }
+    // Send username and password to the server
+    fetch(`${import.meta.env.VITE_API_URL}/login`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, password }),
     })
-    .catch((error) => {
-      console.error("Error during authentication:", error);
-      alert("Failed to login. Please try again.");
-    });
-};
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
+          localStorage.setItem("isAuthenticated", "true");
+          setIsAuthenticated(true);
+        } else {
+          alert("STOP");
+        }
+      })
+      .catch((error) => {
+        console.error("Error during authentication:", error);
+        alert("Failed to login. Please try again.");
+      });
+  };
 
+  // Logout function
   const handleLogout = () => {
     localStorage.removeItem("isAuthenticated");
     setIsAuthenticated(false);
@@ -139,21 +141,50 @@ const handleLogin = (e) => {
       })
       .catch((error) => console.error("Error deleting link:", error));
   };
+
+  const handleMoveUp = (index) => {
+    if (index === 0) return; 
+    const newLinks = [...links];
+    [newLinks[index - 1], newLinks[index]] = [newLinks[index], newLinks[index - 1]];
+    setLinks(newLinks);
   
+    // Now call our function to persist the new order
+    updateLinksOrderOnServer(newLinks);
+  };
+  
+  const handleMoveDown = (index) => {
+    if (index === links.length - 1) return;
+    const newLinks = [...links];
+    [newLinks[index], newLinks[index + 1]] = [newLinks[index + 1], newLinks[index]];
+    setLinks(newLinks);
+  
+    // Persist the new order as well
+    updateLinksOrderOnServer(newLinks);
+  };
+
+  const updateLinksOrderOnServer = (updatedLinks) => {
+    fetch(`${import.meta.env.VITE_API_URL}/links/order`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(updatedLinks),
+    })
+      .then((response) => response.json())
+      .catch((error) => {
+        console.error("Error updating order:", error);
+      });
+  };
 
   if (!isAuthenticated) {
-    return (  
+    return (
       <div className="flex-col justify-center columns-1 items-center min-h-screen">
         <div className="h-70 w-70 mx-auto sm:w-96 sm:h-96">
           <div className="aspect-square">
-            <img
-              src={CCLogo}
-              className="rounded-full"
-              alt="Logo"
-            />
+            <img src={CCLogo} className="rounded-full" alt="Logo" />
           </div>
         </div>
-          <div className="bg-white p-6 pb-10 w-96 mx-auto rounded-lg border-2 border-black focus:outline-none placeholder">
+        <div className="bg-white p-6 pb-10 w-96 mx-auto rounded-lg border-2 border-black focus:outline-none placeholder">
           <form onSubmit={handleLogin} className="text-center">
             <h2 className="text-2xl text-center font-bold">Admin Login</h2>
             <div className="mb-2">
@@ -162,7 +193,8 @@ const handleLogin = (e) => {
                 placeholder="Username"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="sm:w-90 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none placeholder text-2xl"
+                className="sm:w-90 mx-auto mt-6 text-center p-4 rounded py-3 
+                  border-2 border-black focus:outline-none placeholder text-2xl"
                 required
               />
             </div>
@@ -172,22 +204,27 @@ const handleLogin = (e) => {
                 placeholder="Password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="sm:w-90 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none placeholder text-2xl"
+                className="sm:w-90 mx-auto mt-6 text-center p-4 rounded py-3 
+                  border-2 border-black focus:outline-none placeholder text-2xl"
                 required
               />
             </div>
             <button
               type="submit"
-              className="bg-blue-500 py-3 w-[100%] text-center rounded border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1 text-2xl font-bold"
+              className="bg-blue-500 py-3 w-[100%] text-center rounded border-2 border-black 
+                shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1 
+                text-2xl font-bold"
             >
               Log In
             </button>
           </form>
-          </div>
-          <SocialIcons />
+        </div>
+        <SocialIcons />
       </div>
     );
   }
+
+  // Authenticated? Show admin panel
   return (
     <div className="p-6 text-center">
       <h2 className="text-3xl font-semibold mb-4">Link Tree Editing</h2>
@@ -197,16 +234,21 @@ const handleLogin = (e) => {
       >
         Log Out
       </button>
+
+      {/* Manage links */}
       <div className="space-y-4">
         <h3 className="text-2xl font-semibold mb-4">Manage Links</h3>
+
         {links.map((item, index) => (
           <div key={index}>
             {/* Link button */}
             <a href={item.link} target="_blank" rel="noopener noreferrer">
               <div
-                className={`sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1 ${
-                  item.color.startsWith("#") ? "" : item.color
-                }`}
+                className={`sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 
+                  border-black shadow-custom hover:shadow-none transition-all 
+                  hover:translate-x-1 translate-y-1 ${
+                    item.color.startsWith("#") ? "" : item.color
+                  }`}
                 style={
                   item.color.startsWith("#")
                     ? { backgroundColor: item.color }
@@ -221,25 +263,50 @@ const handleLogin = (e) => {
             <div className="flex justify-center space-x-4 mt-2 p-2">
               <button
                 onClick={() => handleEditLink(index)}
-                className="bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600 transition-all duration-200"
+                className="bg-yellow-500 text-white p-2 rounded hover:bg-yellow-600 
+                  transition-all duration-200"
               >
                 {editIndex === index ? "Cancel" : "Edit"}
               </button>
+
               <button
                 onClick={() => handleDeleteLink(index)}
-                className="bg-red-500 text-white p-2 rounded hover:bg-red-600 transition-all duration-200"
+                className="bg-red-500 text-white p-2 rounded hover:bg-red-600 
+                  transition-all duration-200"
               >
                 Delete
               </button>
+
               <button
                 onClick={() => handleAboutLink(index)}
-                className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition-all duration-200"
+                className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 
+                  transition-all duration-200"
               >
                 About
               </button>
+
+              {/* Move Up button */}
+              <button
+                onClick={() => handleMoveUp(index)}
+                disabled={index === 0}
+                className="bg-gray-500 text-white p-2 rounded hover:bg-gray-600 
+                  transition-all duration-200 disabled:opacity-50"
+              >
+                Up
+              </button>
+
+              {/* Move Down button */}
+              <button
+                onClick={() => handleMoveDown(index)}
+                disabled={index === links.length - 1}
+                className="bg-gray-500 text-white p-2 rounded hover:bg-gray-600 
+                  transition-all duration-200 disabled:opacity-50"
+              >
+                Down
+              </button>
             </div>
 
-            {/* About Section*/}
+            {/* About Section */}
             {showAboutIndex === index && (
               <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow-lg">
                 <p>
@@ -290,7 +357,8 @@ const handleLogin = (e) => {
                 </div>
                 <button
                   onClick={handleSaveEdit}
-                  className="bg-green-500 text-white p-2 rounded hover:bg-green-600 transition-all duration-200"
+                  className="bg-green-500 text-white p-2 rounded hover:bg-green-600 
+                    transition-all duration-200"
                 >
                   Save Changes
                 </button>
@@ -312,9 +380,11 @@ const handleLogin = (e) => {
             rel="noopener noreferrer"
           >
             <div
-              className={`sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1 ${
-                newLink.color.startsWith("#") ? "" : newLink.color
-              }`}
+              className={`sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 
+                border-2 border-black shadow-custom hover:shadow-none 
+                transition-all hover:translate-x-1 translate-y-1 ${
+                  newLink.color.startsWith("#") ? "" : newLink.color
+                }`}
               style={
                 newLink.color.startsWith("#")
                   ? { backgroundColor: newLink.color }
@@ -326,10 +396,9 @@ const handleLogin = (e) => {
           </a>
         </div>
 
+        {/* Color Input Field */}
         <div className="mb-4">
           <label className="block text-2xl font-semibold mb-4">Color</label>
-
-          {/* Color Input Field */}
           <input
             type="text"
             placeholder="Enter Tailwind color code or Hex code"
@@ -337,8 +406,10 @@ const handleLogin = (e) => {
             onChange={(e) =>
               setNewLink({ ...newLink, color: e.target.value.trim() })
             }
-            className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+            className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 
+              border-2 border-black focus:outline-none"
           />
+
           {/* Buttons for Color Picker Options */}
           <div className="flex justify-center mt-2 space-x-4">
             <button
@@ -346,7 +417,7 @@ const handleLogin = (e) => {
                 setShowHexColorPicker(!showHexColorPicker);
                 setShowRecommendedColorPicker(false);
               }}
-              className={`px-4 py-2 bg-orange-200 rounded border-2 border-black`}
+              className="px-4 py-2 bg-orange-200 rounded border-2 border-black"
             >
               Hex
             </button>
@@ -355,7 +426,7 @@ const handleLogin = (e) => {
                 setShowRecommendedColorPicker(!showRecommendedColorPicker);
                 setShowHexColorPicker(false);
               }}
-              className={`px-4 py-2 bg-orange-200 rounded border-2 border-black`}
+              className="px-4 py-2 bg-orange-200 rounded border-2 border-black"
             >
               Recommended
             </button>
@@ -371,7 +442,8 @@ const handleLogin = (e) => {
               <div className="mt-2 text-center">
                 <button
                   onClick={() => setShowHexColorPicker(false)}
-                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors duration-200"
+                  className="mt-2 px-4 py-2 bg-blue-500 text-white rounded 
+                    hover:bg-blue-600 transition-colors duration-200"
                 >
                   Close
                 </button>
@@ -391,7 +463,8 @@ const handleLogin = (e) => {
               <div className="mt-2 text-center">
                 <button
                   onClick={() => setShowRecommendedColorPicker(false)}
-                  className="mt-2 px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors duration-200"
+                  className="mt-2 px-4 py-2 bg-green-500 text-white rounded 
+                    hover:bg-green-600 transition-colors duration-200"
                 >
                   Close
                 </button>
@@ -399,6 +472,7 @@ const handleLogin = (e) => {
             </div>
           )}
         </div>
+
         {/* Text and Link Fields */}
         <div className="mb-4">
           <input
@@ -406,9 +480,11 @@ const handleLogin = (e) => {
             placeholder="Text"
             value={newLink.text}
             onChange={(e) => setNewLink({ ...newLink, text: e.target.value })}
-            className="placeholder font-bold sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+            className="placeholder font-bold sm:w-96 mx-auto mt-6 text-center 
+              p-4 rounded py-3 border-2 border-black focus:outline-none"
           />
         </div>
+
         <div className="mb-4">
           <input
             type="text"
@@ -423,12 +499,15 @@ const handleLogin = (e) => {
                 setNewLink({ ...newLink, link: inputValue });
               }
             }}
-            className="placeholder font-bold sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+            className="placeholder font-bold sm:w-96 mx-auto mt-6 text-center 
+              p-4 rounded py-3 border-2 border-black focus:outline-none"
           />
         </div>
+
         <button
           onClick={handleAddLink}
-          className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition-all duration-200"
+          className="bg-blue-500 text-white p-2 rounded hover:bg-blue-600 
+            transition-all duration-200"
         >
           Add Link
         </button>
