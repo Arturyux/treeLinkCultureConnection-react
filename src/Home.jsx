@@ -73,7 +73,7 @@ function Home() {
                   : {}
               }
             >
-              <p className="text-xl font-bold">{item.text}</p>
+              <p className={`text-xl font-bold ${item.textColor}`}>{item.text}</p>
             </div>
           </a>
         ))}
