@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './Home';
-import AdminPanel from './AdminPanel';
+import AdminPanel from './components/AdminPanel';
 
 function App() {
   return (

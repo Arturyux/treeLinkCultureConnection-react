@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./App.css";
-import SocialIcons from "./Socialmedia.jsx";
+import SocialIcons from "./components/Socialmedia";
 import ConfettiComponent from "./ConfettiComponent";
-import CCLogo from "./assets/CCLogo.png";
+import CCLogo from "./components/assets/CCLogo.png";
 
 function Home() {
   const [showConfetti, setShowConfetti] = useState(false);
