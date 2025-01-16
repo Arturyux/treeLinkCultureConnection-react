@@ -4,11 +4,13 @@ import LoginPanel from "./LoginPanel";
 import LinkTreeEditor from "./LinkTree/LinkTreeEditor.jsx";
 import SocialIcons from "./Socialmedia.jsx";
 import CCLogo from "./assets/CCLogo.png";
+import DiscordSchedulerEditor from "./DiscordBot/DiscordSchedulerEditor.jsx";
 
 function AdminPanel() {
   const [showHexColorPicker, setShowHexColorPicker] = useState(false);
   const [showRecommendedColorPicker, setShowRecommendedColorPicker] =
     useState(false);
+  const [showDiscordScheduler, setShowDiscordScheduler] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [username, setUsername] = useState("");
@@ -211,18 +213,18 @@ function AdminPanel() {
         Culture Connection Admin Panel!
       </h2>
       <div className="space-x-4">
-        <button
-          onClick={handleLogout}
-          className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 bg-red-500 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
-        >
-          <p className="font-bold text-lg text-white">Log Out</p>
+        <button onClick={handleLogout}>Log Out</button>
+        <button onClick={() => setShowEditor(!showEditor)} /* ... */>
+          {showEditor ? "Hide Link Tree Editor" : "Show Link Tree Editor"}
         </button>
+
+        {/* Button to Show/Hide Discord Scheduler Editor */}
         <button
-          onClick={() => setShowEditor(!showEditor)}
+          onClick={() => setShowDiscordScheduler(!showDiscordScheduler)}
           className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 bg-gray-300 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
         >
           <p className="font-bold text-lg text-black">
-            {showEditor ? "Hide Link Tree Editor" : "Show Link Tree Editor"}
+            {showDiscordScheduler ? "Hide Discord Scheduler" : "Show Discord Scheduler"}
           </p>
         </button>
       </div>
@@ -255,6 +257,7 @@ function AdminPanel() {
           handleMoveDown={handleMoveDown}
         />
       )}
+      {showDiscordScheduler && <DiscordSchedulerEditor />}
     </div>
   );
 }
