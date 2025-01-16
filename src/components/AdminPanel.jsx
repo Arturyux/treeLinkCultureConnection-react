@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import LoginPanel from "./LoginPanel";
-import LinkTreeEditor from "./LinkTreeEditor";
+import LinkTreeEditor from "./LinkTree/LinkTreeEditor.jsx";
 import SocialIcons from "./Socialmedia.jsx";
 import CCLogo from "./assets/CCLogo.png";
 
 function AdminPanel() {
   const [showHexColorPicker, setShowHexColorPicker] = useState(false);
-  const [showRecommendedColorPicker, setShowRecommendedColorPicker] = useState(false);
+  const [showRecommendedColorPicker, setShowRecommendedColorPicker] =
+    useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [username, setUsername] = useState("");
@@ -126,7 +127,12 @@ function AdminPanel() {
         updatedLinks[editIndex] = updatedLink;
         setLinks(updatedLinks);
         setEditIndex(null);
-        setEditedLink({ color: "", text: "", link: "", textColor: "text-black" });
+        setEditedLink({
+          color: "",
+          text: "",
+          link: "",
+          textColor: "text-black",
+        });
       })
       .catch((error) => console.error("Error saving link:", error));
   };
@@ -140,7 +146,12 @@ function AdminPanel() {
         setLinks(updatedLinks);
         if (editIndex === index) {
           setEditIndex(null);
-          setEditedLink({ color: "", text: "", link: "", textColor: "text-black" });
+          setEditedLink({
+            color: "",
+            text: "",
+            link: "",
+            textColor: "text-black",
+          });
         }
       })
       .catch((error) => console.error("Error deleting link:", error));
@@ -149,7 +160,10 @@ function AdminPanel() {
   const handleMoveUp = (index) => {
     if (index === 0) return;
     const newLinks = [...links];
-    [newLinks[index - 1], newLinks[index]] = [newLinks[index], newLinks[index - 1]];
+    [newLinks[index - 1], newLinks[index]] = [
+      newLinks[index],
+      newLinks[index - 1],
+    ];
     setLinks(newLinks);
     updateLinksOrderOnServer(newLinks);
   };
@@ -157,7 +171,10 @@ function AdminPanel() {
   const handleMoveDown = (index) => {
     if (index === links.length - 1) return;
     const newLinks = [...links];
-    [newLinks[index], newLinks[index + 1]] = [newLinks[index + 1], newLinks[index]];
+    [newLinks[index], newLinks[index + 1]] = [
+      newLinks[index + 1],
+      newLinks[index],
+    ];
     setLinks(newLinks);
     updateLinksOrderOnServer(newLinks);
   };
@@ -190,7 +207,9 @@ function AdminPanel() {
   }
   return (
     <div className="p-6 text-center">
-      <h2 className="text-5xl font-bold mb-4">Culture Connection Admin Panel!</h2>
+      <h2 className="text-5xl font-bold mb-4">
+        Culture Connection Admin Panel!
+      </h2>
       <div className="space-x-4">
         <button
           onClick={handleLogout}
@@ -221,13 +240,11 @@ function AdminPanel() {
           editedLink={editedLink}
           setEditedLink={setEditedLink}
           showAboutIndex={showAboutIndex}
-
           setShowAboutIndex={setShowAboutIndex}
           showHexColorPicker={showHexColorPicker}
           setShowHexColorPicker={setShowHexColorPicker}
           showRecommendedColorPicker={showRecommendedColorPicker}
           setShowRecommendedColorPicker={setShowRecommendedColorPicker}
-
           // Pass callback methods:
           handleAddLink={handleAddLink}
           handleEditLink={handleEditLink}
