@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
+import EditableTextArea from "./EditableTextArea"
 import "react-datepicker/dist/react-datepicker.css";
 
 function DiscordSchedulerEditor() {
@@ -21,8 +22,8 @@ function DiscordSchedulerEditor() {
     daybefore: "0",
     seconds: "0",
     timezone: "Europe/Stockholm",
-    messageContent: `Sup all <@&COMMITTEE_ROLE_ID>,\n\n**Friendly reminder:** Need to make a post on social media!\n\nReact to this message\n❤️ - Automatically send a message in Discord\n\n*Not necessary to react; you can send message manually.*`,
-    automaticResponses: [{ title: "", content: "" }],
+    messageContent: `Sup all,\n\n**Friendly reminder:** Need to make a post on social media!\n\nReact to this message\n❤️ - Automatically send a message in Discord\n\n*Not necessary to react; you can send message manually.*`,
+    automaticResponses: [],
   });
 
   const [addNewOpen, setAddNewOpen] = useState(false);
@@ -900,19 +901,43 @@ function DiscordSchedulerEditor() {
                 selected={newMessageData.selectedDate}
                 onChange={(date) => handleNewFieldChange("selectedDate", date)}
                 dateFormat="yyyy-MM-dd"
-                className="border p-1"
+                placeholder="Date"
+                className="placeholder font-bold sm:w-96 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
               />
-              <label className="block font-semibold mt-2">Day Before:</label>
-              <input
-                type="text"
-                value={newMessageData.daybefore}
-                onChange={(e) => handleNewFieldChange("daybefore", e.target.value)}
-                className="border p-1 w-full"
-              />
+              <label className="block font-semibold mb-2 mt-6">Day Before:</label>
+              <div className="mx-auto space-x-1">
+                {/* Minus Button */}
+                <button
+                  type="button"
+                  className="bg-green-500 text-white font-bold rounded-l hover:bg-green-600 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                  onClick={() =>
+                    handleNewFieldChange("daybefore", String(Number(newMessageData.daybefore) + 1))
+                  }
+                >
+                  <p className="font-bold text-lg">+</p>
+                </button>
+                <input
+                  type="text"
+                  value={newMessageData.daybefore}
+                  onChange={(e) => handleNewFieldChange("daybefore", e.target.value)}
+                  className="placeholder font-bold sm:w-54 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                />
+
+                {/* Plus Button */}
+                <button
+                  type="button"
+                  className="bg-red-500 text-white font-bold rounded-l hover:bg-red-600 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                  onClick={() =>
+                    handleNewFieldChange("daybefore", String(Number(newMessageData.daybefore) - 1))
+                  }
+                >
+                  <p className="font-bold text-lg">-</p>
+                </button>
+              </div>
             </div>
           )}
-          <div className="space-y-2 mb-4">
-            <label className="block font-semibold">Message Content:</label>
+          <div className="border p-2 rounded bg-white mb-4">
+          <label className="block text-xl font-bold mt-2">Message Content:</label>
             <textarea
               rows={4}
               value={newMessageData.messageContent}
@@ -921,43 +946,48 @@ function DiscordSchedulerEditor() {
             />
           </div>
           <div className="border p-2 mb-4 bg-white">
-            <p className="font-semibold mb-2">Automatic Responses:</p>
+          <label className="block text-xl font-bold mt-2">Automatic Responses:</label>
             {newMessageData.automaticResponses.map((resp, idx) => (
               <div key={idx} className="border p-2 mb-2 rounded">
-                <label className="block font-semibold">Title:</label>
+                <label className="block text-lg font-semibold">Title:</label>
                 <input
                   type="text"
                   value={resp.title}
                   onChange={(e) => handleNewAutoRespFieldChange(idx, "title", e.target.value)}
-                  className="border p-1 w-full mb-2"
+                  className="placeholder font-bold sm:w-96 mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
                 />
-                <label className="block font-semibold">Content:</label>
-                <textarea
-                  rows={2}
-                  value={resp.content}
-                  onChange={(e) => handleNewAutoRespFieldChange(idx, "content", e.target.value)}
-                  className="border p-1 w-full mb-2"
-                />
+                <label className="block text-lg mt-2 font-semibold">Content:</label>
+                {resp ? (
+                  <EditableTextArea
+                    idx={idx}
+                    resp={resp}
+                    handleNewAutoRespFieldChange={handleNewAutoRespFieldChange}
+                  />
+                ) : (
+                  <p>Loading data...</p>
+                )}
+                <div>
                 <button
                   onClick={() => handleRemoveAutomaticResponseNew(idx)}
-                  className="bg-red-500 text-white px-3 py-1 rounded"
+                  className="w-96 text-center mb-4 p-2 bg-red-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
                 >
-                  Remove
+                  <p className="text-xl font-bold">Remove</p>
                 </button>
+                </div>
               </div>
             ))}
             <button
               onClick={handleAddAutomaticResponseNew}
-              className="bg-green-500 text-white px-3 py-1 mt-2 rounded"
+              className="w-96 text-center mb-4 p-2 bg-green-400 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
             >
-              Add Automatic Response
+              <p className="text-xl font-bold">Add Automatic Response</p>
             </button>
           </div>
           <button
             onClick={handleCreateNewMessage}
-            className="bg-blue-600 text-white px-4 py-2 rounded"
+            className="w-96 text-center mb-4 p-2 bg-blue-600 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
           >
-            Add New Scheduled Message
+            <p className="text-xl font-bold">Add New Scheduled Message</p>
           </button>
         </div>
       )}
