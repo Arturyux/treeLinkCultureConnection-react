@@ -925,6 +925,7 @@ function DiscordSchedulerEditor() {
                     idx={idx}
                     resp={resp}
                     handleNewAutoRespFieldChange={handleNewAutoRespFieldChange}
+                    RoleIDfetcher={newMessageData.roleId}
                   />
                 ) : (
                   <p>Loading data...</p>
