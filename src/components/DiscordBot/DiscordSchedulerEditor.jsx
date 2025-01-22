@@ -276,15 +276,17 @@ function DiscordSchedulerEditor() {
             const isEditing = index === editIndex;
             if (isEditing && editData) {
               return (
-                <div key={index} className="border p-4 rounded bg-gray-100">
+                <div key={index} className="sm:w-[70%] w-[97%] mx-auto bg-white py-10 mt-6 rounded-lg border-2 border-black focus:outline-none placeholder">
                   <div className="space-y-2">
                     <div>
-                      <label className="block font-semibold">Name:</label>
+                      <label className="text-5xl font-semibold mb-4">Editing {editData.name}</label>
+                      <label className="block text-lg font-semibold mt-6">Name:</label>
                       <input
                         type="text"
+                        placeholder="Text"
                         value={editData.name || ""}
                         onChange={(e) => handleFieldChange("name", e.target.value)}
-                        className="border p-1 w-full"
+                        className="placeholder font-bold sm:w-96 mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
                       />
                     </div>
                     <div>
@@ -302,21 +304,26 @@ function DiscordSchedulerEditor() {
                     <div className="text-center mb-2">
                       <label className="font-semibold text-lg">Discord Inputs</label>
                     </div>
-                    <div className="relative inline-block text-left mb-4">
+                    <button
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                        onClick={() => window.open("https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID#h_01HRSTXPS5CRSRTWYCGPHZQ37H", "_blank")}
+                      >
+                        How to find IDs on Discord
+                    </button>
+                    </div>
+                    <div className="block relative mb-4">
                       <button
                         type="button"
                         onClick={() => setDiscordInputsOpenEdit((p) => !p)}
-                        className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 
-                                   focus:outline-none focus:ring-blue-300 font-medium rounded-lg 
-                                   text-sm px-5 py-2.5 inline-flex items-center 
-                                   dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                        className="w-96 mt-6 text-center p-2 bg-blue-700 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
                       >
-                        {discordInputsOpenEdit ? "Hide" : "Show"} Inputs
+                        <p className="text-lg font-semibold">{discordInputsOpenEdit ? "Hide" : "Show"} Inputs</p>
                       </button>
                       {discordInputsOpenEdit && (
                         <div
-                          className="z-10 absolute mt-2 bg-white divide-y divide-gray-100 
-                                     rounded-lg shadow w-72 dark:bg-gray-700 p-3"
+                          className="z-10 absolute left-1/2 top-full transform -translate-x-1/2 mt-2 
+                 p-4 bg-white font-bold sm:w-96 items-center text-center 
+                 rounded border-2 border-black focus:outline-none"
                         >
                           <div className="mb-2">
                             <label className="block font-semibold">Channel ID:</label>
@@ -324,7 +331,7 @@ function DiscordSchedulerEditor() {
                               type="text"
                               value={editData.channelId || ""}
                               onChange={(e) => handleFieldChange("channelId", e.target.value)}
-                              className="border p-1 w-full"
+                              className="placeholder font-bold w-full mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
                             />
                           </div>
                           <div className="mb-2">
@@ -333,7 +340,7 @@ function DiscordSchedulerEditor() {
                               type="text"
                               value={editData.responseChannelId || ""}
                               onChange={(e) => handleFieldChange("responseChannelId", e.target.value)}
-                              className="border p-1 w-full"
+                              className="placeholder font-bold w-full mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
                             />
                           </div>
                           <div>
@@ -342,43 +349,26 @@ function DiscordSchedulerEditor() {
                               type="text"
                               value={editData.roleId || ""}
                               onChange={(e) => handleFieldChange("roleId", e.target.value)}
-                              className="border p-1 w-full"
+                              className="placeholder font-bold w-full mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
                             />
                           </div>
                         </div>
                       )}
                     </div>
                     <div>
-                      <label className="block font-semibold">Type:</label>
+                      <label className="block text-lg font-semibold mt-6">Type:</label>
                       <div className="relative inline-block text-left">
                         <button
                           type="button"
                           onClick={() => setTypeDropdownOpenEdit((p) => !p)}
-                          className="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 
-                                     focus:outline-none focus:ring-blue-300 font-medium 
-                                     rounded-lg text-sm px-5 py-2.5 inline-flex items-center"
+                          className="w-96 text-center mb-2 p-2 bg-blue-700 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
                         >
-                          {editData.type === "weekly" ? "Weekly" : "Date"}
-                          <svg
-                            className="w-2.5 h-2.5 ml-3"
-                            aria-hidden="true"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 10 6"
-                          >
-                            <path
-                              stroke="currentColor"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth="2"
-                              d="m1 1 4 4 4-4"
-                            />
-                          </svg>
+                          <p className="text-lg font-semibold">{editData.type === "weekly" ? "Weekly" : "Date"}</p>
+
                         </button>
                         {typeDropdownOpenEdit && (
                           <div
-                            className="z-10 absolute mt-2 bg-white divide-y divide-gray-100 
-                                       rounded-lg shadow w-28 p-2"
+                            className="z-10 absolute placeholder bg-white font-bold sm:w-96 mx-auto text-center rounded border-2 border-black focus:outline-none"
                           >
                             <button
                               type="button"
@@ -386,7 +376,7 @@ function DiscordSchedulerEditor() {
                                 handleFieldChange("type", "weekly");
                                 setTypeDropdownOpenEdit(false);
                               }}
-                              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                              className="block w-full border-b-2 border-black text-left px-4 py-2 hover:bg-gray-100"
                             >
                               Weekly
                             </button>
@@ -405,34 +395,17 @@ function DiscordSchedulerEditor() {
                       </div>
                     </div>
                     {editData.type === "weekly" && (
-                      <div className="border p-2 mt-2 rounded bg-white">
-                        <p className="font-semibold">Weekly Schedule:</p>
-                        <div className="flex items-center space-x-2 mt-2">
-                          <label className="font-semibold">Hour:</label>
-                          <div className="relative inline-block text-left">
+                      <div className="border mt-6 p-2 rounded bg-white m-4">
+                      <p className="block text-xl font-bold mt-2">Weekly Schedule:</p>
+                      <div className="mx-auto space-x-2 mb-2">
+                        <label className="font-semibold">Hour:</label>
+                        <div className="relative inline-block text-left">
                             <button
                               type="button"
                               onClick={() => setHourDropdownOpenEdit((p) => !p)}
-                              className="text-white bg-blue-700 hover:bg-blue-800 
-                                         focus:ring-4 focus:outline-none focus:ring-blue-300 
-                                         font-medium rounded-lg text-sm px-3 py-1 inline-flex items-center"
+                              className="w-16 text-center my-4 p-2 bg-blue-700 text-white rounded py-1 border-2 border-black"
                             >
-                              {editData.hour}
-                              <svg
-                                className="w-2.5 h-2.5 ml-2"
-                                aria-hidden="true"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 10 6"
-                              >
-                                <path
-                                  stroke="currentColor"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="m1 1 4 4 4-4"
-                                />
-                              </svg>
+                              <p className="font-semibold text-lg">{editData.hour || 0}</p>
                             </button>
                             {hourDropdownOpenEdit && (
                               <div
@@ -455,31 +428,14 @@ function DiscordSchedulerEditor() {
                               </div>
                             )}
                           </div>
-                          <label className="font-semibold">Minutes:</label>
+                          <label className="text-lg font-semibold">Minutes:</label>
                           <div className="relative inline-block text-left">
                             <button
                               type="button"
                               onClick={() => setMinutesDropdownOpenEdit((p) => !p)}
-                              className="text-white bg-blue-700 hover:bg-blue-800 
-                                         focus:ring-4 focus:outline-none focus:ring-blue-300 
-                                         font-medium rounded-lg text-sm px-3 py-1 inline-flex items-center"
+                              className="w-16 text-center my-4 p-2 bg-blue-700 text-white rounded py-1 border-2 border-black"
                             >
-                              {editData.minutes}
-                              <svg
-                                className="w-2.5 h-2.5 ml-2"
-                                aria-hidden="true"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 10 6"
-                              >
-                                <path
-                                  stroke="currentColor"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="m1 1 4 4 4-4"
-                                />
-                              </svg>
+                              <p className="font-semibold text-lg">{editData.minutes || 0}</p>
                             </button>
                             {minutesDropdownOpenEdit && (
                               <div className="z-10 absolute mt-1 bg-white 
@@ -501,36 +457,19 @@ function DiscordSchedulerEditor() {
                             )}
                           </div>
                         </div>
-                        <div className="flex items-center space-x-2 mt-2">
-                          <label className="font-semibold">Day:</label>
-                          <div className="relative inline-block text-left">
+                        <div className=" mx-auto items-center space-x-2 mt-2">
+                          <label className="text-lg font-semibold">Day:</label>
+                          <div className="relative inline-block">
                             <button
                               type="button"
+                              placeholder="0"
                               onClick={() => setDayOfWeekDropdownOpenEdit((p) => !p)}
-                              className="text-white bg-blue-700 hover:bg-blue-800 
-                                         focus:ring-4 focus:outline-none focus:ring-blue-300 
-                                         font-medium rounded-lg text-sm px-3 py-1 inline-flex items-center"
+                              className="text-center mb-4 px-4 bg-blue-700 text-white rounded py-1 border-2 border-black"
                             >
-                              {DaysOfWeekLabel(editData.dayoftheweek || "0")}
-                              <svg
-                                className="w-2.5 h-2.5 ml-2"
-                                aria-hidden="true"
-                                xmlns="http://www.w3.org/2000/svg"
-                                fill="none"
-                                viewBox="0 0 10 6"
-                              >
-                                <path
-                                  stroke="currentColor"
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth="2"
-                                  d="m1 1 4 4 4-4"
-                                />
-                              </svg>
+                              <p className="font-semibold text-lg">{DaysOfWeekLabel(editData.dayoftheweek)}</p>
                             </button>
                             {dayOfWeekDropdownOpenEdit && (
-                              <div className="z-10 absolute mt-1 bg-white 
-                                              rounded-lg shadow w-24 p-1">
+                              <div className="z-10 absolute mt-1 bg-white rounded-lg shadow w-24 p-1">
                                 {["0","1","2","3","4","5","6"].map((val) => (
                                   <button
                                     key={val}
@@ -551,83 +490,106 @@ function DiscordSchedulerEditor() {
                       </div>
                     )}
                     {editData.type === "date" && (
-                      <div className="border p-2 mt-2 rounded bg-white">
+                      <div className="border p-2 my-6 rounded bg-white">
                         <p className="font-semibold">One-Time Date Schedule:</p>
                         <div className="mt-2">
                           <DatePicker
                             selected={editData.selectedDate}
                             onChange={(date) => handleFieldChange("selectedDate", date)}
                             dateFormat="yyyy-MM-dd"
-                            className="border p-1"
+                            className="placeholder font-bold sm:w-96 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
                           />
                           <label className="block font-semibold mt-2">Day Before:</label>
-                          <input
-                            type="text"
-                            value={editData.daybefore || "0"}
-                            onChange={(e) => handleFieldChange("daybefore", e.target.value)}
-                            className="border p-1 w-full"
-                          />
+                          <div className="mx-auto space-x-1">
+                            {/* Minus Button */}
+                            <button
+                              type="button"
+                              className="bg-green-500 text-white font-bold rounded-l hover:bg-green-600 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                              onClick={() =>
+                                handleFieldChange("daybefore", String(Number(editData.daybefore) + 1))
+                              }
+                            >
+                              <p className="font-bold text-lg">+</p>
+                            </button>
+                            <input
+                              type="text"
+                              value={editData.daybefore}
+                              onChange={(e) => handleFieldChange("daybefore", e.target.value)}
+                              className="placeholder font-bold sm:w-54 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                            />
+
+                            {/* Plus Button */}
+                            <button
+                              type="button"
+                              className="bg-red-500 text-white font-bold rounded-l hover:bg-red-600 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                              onClick={() =>
+                                handleFieldChange("daybefore", String(Number(editData.daybefore) - 1))
+                              }
+                            >
+                              <p className="font-bold text-lg">-</p>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     )}
                     <div>
-                      <label className="block font-semibold">Message Content:</label>
+                      <label className="block text-lg font-semibold">Message Content:</label>
                       <textarea
                         rows={3}
                         value={editData.messageContent || ""}
                         onChange={(e) => handleFieldChange("messageContent", e.target.value)}
-                        className="border p-1 w-full"
+                        className="border border-black p-2 w-[95%]"
                       />
                     </div>
                     <div className="mt-4 border-t pt-2">
-                      <p className="font-semibold">Automatic Responses:</p>
+                      <p className="text-lg font-semibold mb-4">Automatic Responses:</p>
                       {(editData.automaticResponses || []).map((resp, i) => (
-                        <div key={i} className="border p-2 mb-2 rounded bg-white">
-                          <label className="block font-semibold">Title:</label>
+                        <div key={i} className="border border-black w-[95%] mx-auto p-2 mb-2 rounded bg-white">
+                          <label className="block text-lg m-2 font-semibold">Title:</label>
                           <input
                             type="text"
+                            placeholder="Text"
                             value={resp.title}
                             onChange={(e) => handleAutomaticResponseChange(i, "title", e.target.value)}
-                            className="border p-1 w-full mb-2"
+                            className="placeholder font-bold sm:w-54 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
                           />
-                          <label className="block font-semibold">Content:</label>
+                          <label className="block text-lg m-2 font-semibold">Content:</label>
                           <textarea
-                            rows={2}
+                            rows={4}
                             value={resp.content}
                             onChange={(e) => handleAutomaticResponseChange(i, "content", e.target.value)}
-                            className="border p-1 w-full mb-2"
+                            className="border border-black p-2 mb-2 w-[95%]"
                           />
                           <button
                             onClick={() => handleRemoveAutomaticResponseEdit(i)}
-                            className="bg-red-500 text-white px-3 py-1 rounded"
-                          >
-                            Remove
-                          </button>
+                            className="w-96 text-center mb-4 p-2 bg-red-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                            >
+                              <p className="text-xl font-bold">Remove</p>
+                            </button>
                         </div>
                       ))}
                       <button
                         onClick={handleAddAutomaticResponseEdit}
-                        className="bg-green-500 text-white px-3 py-1 mt-2 rounded"
+                        className="w-96 text-center mb-4 p-2 bg-green-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
                       >
-                        Add Automatic Response
+                        <p className="text-xl font-bold">Add Automatic Response</p>
                       </button>
                     </div>
                     <div className="mt-4 space-x-2">
                       <button
                         onClick={handleSave}
-                        className="bg-blue-500 text-white px-4 py-1 rounded"
+                        className="w-32 text-center mx-2 mb-4 p-2 bg-blue-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
                       >
-                        Save
+                        <p className="text-xl font-bold">Save</p>
                       </button>
                       <button
                         onClick={handleCancel}
-                        className="bg-gray-300 px-4 py-1 rounded"
+                        className="w-32 text-center mx-2 mb-4 p-2 bg-gray-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
                       >
-                        Cancel
+                        <p className="text-xl font-bold">Cancel</p>
                       </button>
                     </div>
                   </div>
-                </div>
               );
             } else {
               return (
@@ -724,7 +686,7 @@ function DiscordSchedulerEditor() {
               onClick={() => window.open("https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID#h_01HRSTXPS5CRSRTWYCGPHZQ37H", "_blank")}
             >
               How to find IDs on Discord
-            </button>
+          </button>
           </div>
           <div className="relative inline-block text-left mb-4">
             <button
@@ -865,7 +827,7 @@ function DiscordSchedulerEditor() {
                   )}
                 </div>
               </div>
-                <label className="font-semibold">Day:</label>
+                <label className="text-lg font-semibold">Day:</label>
                 <div className="relative inline-block text-left">
                   <button
                     type="button"
@@ -952,6 +914,7 @@ function DiscordSchedulerEditor() {
                 <label className="block text-lg font-semibold">Title:</label>
                 <input
                   type="text"
+                  placeholder="Text"
                   value={resp.title}
                   onChange={(e) => handleNewAutoRespFieldChange(idx, "title", e.target.value)}
                   className="placeholder font-bold sm:w-96 mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
