@@ -554,12 +554,16 @@ function DiscordSchedulerEditor() {
                             className="placeholder font-bold sm:w-54 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
                           />
                           <label className="block text-lg m-2 font-semibold">Content:</label>
-                          <textarea
-                            rows={4}
-                            value={resp.content}
-                            onChange={(e) => handleAutomaticResponseChange(i, "content", e.target.value)}
-                            className="border border-black p-2 mb-2 w-[95%]"
-                          />
+                          {resp ? (
+                            <EditableTextArea
+                              idx={i}
+                              resp={resp}
+                              handleNewAutoRespFieldChange={handleAutomaticResponseChange}
+                              RoleIDfetcher={editData.roleId}
+                            />
+                          ) : (
+                            <p>Loading data...</p>
+                          )}
                           <button
                             onClick={() => handleRemoveAutomaticResponseEdit(i)}
                             className="w-96 text-center mb-4 p-2 bg-red-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
@@ -594,19 +598,18 @@ function DiscordSchedulerEditor() {
             } else {
               return (
                 <div key={index} className="sm:w-[70%] w-[97%] mx-auto bg-white py-10 mt-6 rounded-lg border-2 border-black focus:outline-none placeholder">
-                  <p><strong>Name:</strong> {msg.name}</p>
-                  <p>
-                    <strong>Turn On:</strong>{" "}
+                    <p className="text-4xl font-bold">{msg.name}</p>
+                  <div className=" m-6">
                     {msg.turnon ? (
-                      <span className="bg-green-500 text-white px-2 py-1 rounded">
-                        Enabled
+                      <span className="w-32 text-center mx-2 mb-4 p-2 bg-green-600 text-white rounded py-3 border-2 border-black">
+                        Turn On
                       </span>
                     ) : (
-                      <span className="bg-red-500 text-white px-2 py-1 rounded">
-                        Disabled
+                      <span className="w-32 text-center mx-2 mb-4 p-2 bg-red-500 text-white rounded py-3 border-2 border-black">
+                        Turn OFF
                       </span>
                     )}
-                  </p>
+                  </div>
                   {msg.type === "weekly" ? (
                     <p>
                       <strong>Weekly:</strong> {msg.hour?.toString().padStart(2, "0")}:
@@ -615,8 +618,8 @@ function DiscordSchedulerEditor() {
                     </p>
                   ) : (
                     <div>
-                      <p>
-                        <strong>Date:</strong> {msg.year}-{msg.month}-{msg.day} (12:00:00)
+                      <p className="text-lg font-medium">
+                         Event set on {msg.year}-{msg.month}-{msg.day}
                       </p>
                       <p className="text-lg font-semibold">Will remind {msg.daybefore} day before</p>
                     </div>
@@ -655,7 +658,7 @@ function DiscordSchedulerEditor() {
       {addNewOpen && (
         <div className="sm:w-[70%] w-[97%] mx-auto bg-white py-10 mt-6 rounded-lg border-2 border-black focus:outline-none placeholder">
           <div className="space-y-2 mb-4">
-          <h3 className="text-5xl font-semibold mb-4">Add New Link</h3>
+          <h3 className="text-5xl font-semibold mb-4">Add New Schedule Form</h3>
             <label className="block font-semibold">Name:</label>
             <input
               type="text"

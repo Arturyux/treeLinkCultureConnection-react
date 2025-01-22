@@ -212,16 +212,35 @@ function AdminPanel() {
       <h2 className="text-5xl font-bold mb-4">
         Culture Connection Admin Panel!
       </h2>
-      <div className="space-x-4">
-        <button onClick={handleLogout}>Log Out</button>
-        <button onClick={() => setShowEditor(!showEditor)} /* ... */>
-          {showEditor ? "Hide Link Tree Editor" : "Show Link Tree Editor"}
+      <div className="flex flex-col items-center justify-center space-y-4 mt-6">
+        {/* Exit Button */}
+        <button
+          onClick={handleLogout}
+          className="sm:w-96 w-64 p-4 rounded py-3 border-2 bg-red-300 border-black 
+                    shadow-custom hover:shadow-none transition-all 
+                    hover:translate-x-1 translate-y-1"
+        >
+          <p className="font-bold text-lg text-black">Log Out</p>
         </button>
 
-        {/* Button to Show/Hide Discord Scheduler Editor */}
+        {/* Link Tree Button */}
+        <button 
+          onClick={() => setShowEditor(!showEditor)}
+          className="sm:w-96 w-64 p-4 rounded py-3 border-2 bg-purple-300 border-black 
+                    shadow-custom hover:shadow-none transition-all 
+                    hover:translate-x-1 translate-y-1"
+        >
+          <p className="font-bold text-lg text-black">
+            {showEditor ? "Hide Link Tree Editor" : "Show Link Tree Editor"}
+          </p>
+        </button>
+
+        {/* Discord Scheduler Editor Button */}
         <button
           onClick={() => setShowDiscordScheduler(!showDiscordScheduler)}
-          className="sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 bg-gray-300 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+          className="sm:w-96 w-64 p-4 rounded py-3 border-2 bg-blue-300 border-black 
+                    shadow-custom hover:shadow-none transition-all 
+                    hover:translate-x-1 translate-y-1"
         >
           <p className="font-bold text-lg text-black">
             {showDiscordScheduler ? "Hide Discord Scheduler" : "Show Discord Scheduler"}
