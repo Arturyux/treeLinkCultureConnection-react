@@ -44,7 +44,7 @@ function LinkTreeEditor({
           {/* Link Preview */}
           <a href={item.link} target="_blank" rel="noopener noreferrer">
             <div
-              className={`sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1 ${
+              className={`sm:w-96 w-[90%] mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1 ${
                 item.color.startsWith("#") ? "" : item.color
               }`}
               style={

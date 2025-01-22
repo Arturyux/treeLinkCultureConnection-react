@@ -63,7 +63,8 @@ export default function EditableTextArea({
 
   return (
     <div className="max-w-xl mx-auto mt-6 p-4 border rounded shadow">
-      <h2 className="text-xl font-bold mb-4">Markdown Editor</h2>
+      <h2 className="text-xl font-bold mb-4">AutoRespond Editor</h2>
+      <p className="mb-6 text-gray-400 font-light">This Message will only appear in the `ChannelID` after it been liked by the user. AutoRespond is not required.</p>
 
       {/* Toolbar: Bold, Italic, Inline Code, and Role ID */}
       <div className="flex space-x-2 mb-2">

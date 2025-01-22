@@ -208,7 +208,7 @@ function AdminPanel() {
     );
   }
   return (
-    <div className="p-6 text-center">
+    <div className="py-6 text-center">
       <h2 className="text-5xl font-bold mb-4">
         Culture Connection Admin Panel!
       </h2>

@@ -22,7 +22,7 @@ function DiscordSchedulerEditor() {
     daybefore: "0",
     seconds: "0",
     timezone: "Europe/Stockholm",
-    messageContent: `Sup all,\n\n**Friendly reminder:** Need to make a post on social media!\n\nReact to this message\n❤️ - Automatically send a message in Discord\n\n*Not necessary to react; you can send message manually.*`,
+    messageContent: `Here's a Example, but recommended try your text in Discord\n\nExample,\n\nTo make BOLD text, You need to cover text with **example**\n\nTo make Italic style, You need to cover text with _example_\n\nYou can use Emojis as well`,
     automaticResponses: [],
   });
 
@@ -265,7 +265,7 @@ function DiscordSchedulerEditor() {
   }
 
   return (
-    <div className="p-4">
+    <div className="py-6">
       <h2 className="text-3xl font-bold text-center mb-4">Discord Scheduler Editor</h2>
 
       {scheduledMessages.length === 0 ? (
@@ -295,10 +295,10 @@ function DiscordSchedulerEditor() {
                         type="button"
                         onClick={toggleTurnOnEdit}
                         className={`px-4 py-2 rounded text-white ${
-                          editData.turnon ? "bg-green-600" : "bg-red-600"
+                          editData.turnon ? "w-32 text-center mx-2 mb-4 p-2 bg-green-600 text-white rounded py-3 border-2 border-black" : "w-32 text-center mx-2 mb-4 p-2 bg-red-600 text-white rounded py-3 border-2 border-black"
                         }`}
                       >
-                        {editData.turnon ? "Enabled" : "Disabled"}
+                        <p className="text-lg font-bold">{editData.turnon ? "Enabled" : "Disabled"}</p>
                       </button>
                     </div>
                     <div className="text-center mb-2">
@@ -315,13 +315,13 @@ function DiscordSchedulerEditor() {
                       <button
                         type="button"
                         onClick={() => setDiscordInputsOpenEdit((p) => !p)}
-                        className="w-96 mt-6 text-center p-2 bg-blue-700 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                        className="sm:w-96 w-80 mt-6 text-center p-2 bg-blue-700 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
                       >
                         <p className="text-lg font-semibold">{discordInputsOpenEdit ? "Hide" : "Show"} Inputs</p>
                       </button>
                       {discordInputsOpenEdit && (
                         <div
-                          className="z-10 absolute left-1/2 top-full transform -translate-x-1/2 mt-2 
+                          className="z-20 w-80 absolute left-1/2 top-full transform -translate-x-1/2 mt-2 
                  p-4 bg-white font-bold sm:w-96 items-center text-center 
                  rounded border-2 border-black focus:outline-none"
                         >
@@ -329,6 +329,7 @@ function DiscordSchedulerEditor() {
                             <label className="block font-semibold">Channel ID:</label>
                             <input
                               type="text"
+                              placeholder="Channel for first message"
                               value={editData.channelId || ""}
                               onChange={(e) => handleFieldChange("channelId", e.target.value)}
                               className="placeholder font-bold w-full mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
@@ -338,6 +339,7 @@ function DiscordSchedulerEditor() {
                             <label className="block font-semibold">Response Channel ID:</label>
                             <input
                               type="text"
+                              placeholder="Channel for Auto Response"
                               value={editData.responseChannelId || ""}
                               onChange={(e) => handleFieldChange("responseChannelId", e.target.value)}
                               className="placeholder font-bold w-full mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
@@ -347,6 +349,7 @@ function DiscordSchedulerEditor() {
                             <label className="block font-semibold">Role ID:</label>
                             <input
                               type="text"
+                              placeholder="Role tagged on the message"
                               value={editData.roleId || ""}
                               onChange={(e) => handleFieldChange("roleId", e.target.value)}
                               className="placeholder font-bold w-full mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
@@ -361,14 +364,14 @@ function DiscordSchedulerEditor() {
                         <button
                           type="button"
                           onClick={() => setTypeDropdownOpenEdit((p) => !p)}
-                          className="w-96 text-center mb-2 p-2 bg-blue-700 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                          className="sm:w-96 w-80 text-center mb-2 p-2 bg-blue-700 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
                         >
                           <p className="text-lg font-semibold">{editData.type === "weekly" ? "Weekly" : "Date"}</p>
 
                         </button>
                         {typeDropdownOpenEdit && (
                           <div
-                            className="z-10 absolute placeholder bg-white font-bold sm:w-96 mx-auto text-center rounded border-2 border-black focus:outline-none"
+                            className="z-10 absolute placeholder bg-white font-bold w-80 mx-auto text-center rounded border-2 border-black focus:outline-none"
                           >
                             <button
                               type="button"
@@ -376,9 +379,9 @@ function DiscordSchedulerEditor() {
                                 handleFieldChange("type", "weekly");
                                 setTypeDropdownOpenEdit(false);
                               }}
-                              className="block w-full border-b-2 border-black text-left px-4 py-2 hover:bg-gray-100"
+                              className="block w-full border-b-2 border-black text-center px-4 py-4 hover:bg-gray-100"
                             >
-                              Weekly
+                              <p className="text-lg font-bold">Weekly</p>
                             </button>
                             <button
                               type="button"
@@ -386,9 +389,9 @@ function DiscordSchedulerEditor() {
                                 handleFieldChange("type", "date");
                                 setTypeDropdownOpenEdit(false);
                               }}
-                              className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                              className="block w-full text-center px-4 py-4 hover:bg-gray-100"
                             >
-                              Date
+                              <p className="text-lg font-bold">Date</p>
                             </button>
                           </div>
                         )}
@@ -535,7 +538,7 @@ function DiscordSchedulerEditor() {
                     <div>
                       <label className="block text-lg font-semibold">Message Content:</label>
                       <textarea
-                        rows={3}
+                        rows={6}
                         value={editData.messageContent || ""}
                         onChange={(e) => handleFieldChange("messageContent", e.target.value)}
                         className="border border-black p-2 w-[95%]"
@@ -566,7 +569,7 @@ function DiscordSchedulerEditor() {
                           )}
                           <button
                             onClick={() => handleRemoveAutomaticResponseEdit(i)}
-                            className="w-96 text-center mb-4 p-2 bg-red-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                            className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-red-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
                             >
                               <p className="text-xl font-bold">Remove</p>
                             </button>
@@ -574,7 +577,7 @@ function DiscordSchedulerEditor() {
                       ))}
                       <button
                         onClick={handleAddAutomaticResponseEdit}
-                        className="w-96 text-center mb-4 p-2 bg-green-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                        className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-green-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
                       >
                         <p className="text-xl font-bold">Add Automatic Response</p>
                       </button>
@@ -649,7 +652,7 @@ function DiscordSchedulerEditor() {
         <button
           type="button"
           onClick={() => setAddNewOpen((p) => !p)}
-          className="w-96 mt-6 text-center p-2 bg-blue-400 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+          className="sm:w-96 w-[90%] mt-6 text-center p-2 bg-blue-400 rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
         >
           <p className="text-xl font-bold">{addNewOpen ? "Hide" : "Show"} New Schedule Form</p>
         </button>
@@ -674,10 +677,10 @@ function DiscordSchedulerEditor() {
               type="button"
               onClick={toggleNewTurnOn}
               className={`px-4 py-2 rounded text-white ${
-                newMessageData.turnon ? "bg-green-600" : "bg-red-600"
+                newMessageData.turnon ? "w-32 text-center mx-2 mb-4 p-2 bg-green-600 text-white rounded py-3 border-2 border-black" : "w-32 text-center mx-2 mb-4 p-2 bg-red-600 text-white rounded py-3 border-2 border-black"
               }`}
             >
-              {newMessageData.turnon ? "Enabled" : "Disabled"}
+              <p className="text-lg font-bold">{newMessageData.turnon ? "Enabled" : "Disabled"}</p>
             </button>
           </div>
           <div className="text-center mb-2">
@@ -695,18 +698,19 @@ function DiscordSchedulerEditor() {
             <button
               type="button"
               onClick={() => setDiscordInputsOpenNew((p) => !p)}
-              className="w-96 mt-6 text-center p-2 bg-blue-700 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+              className="sm:w-96 w-80 mt-6 text-center p-2 bg-blue-700 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
             >
               <p className="text-xl font-bold">{discordInputsOpenNew ? "Hide" : "Show"} Inputs</p>
             </button>
             {discordInputsOpenNew && (
               <div
-                className="z-10 absolute placeholder bg-white font-bold sm:w-96 mx-auto mt-6 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                className="z-20 absolute placeholder bg-white font-bold w-80 mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
               >
                 <div className="mb-2">
                   <label className="block font-semibold">Channel ID:</label>
                   <input
                     type="text"
+                    placeholder="Channel for first message"
                     value={newMessageData.channelId}
                     onChange={(e) => handleNewFieldChange("channelId", e.target.value)}
                     className="border p-1 w-full"
@@ -715,6 +719,7 @@ function DiscordSchedulerEditor() {
                 <div className="mb-2">
                   <label className="block font-semibold">Response Channel ID:</label>
                   <input
+                    placeholder="Channel for Auto Response"
                     type="text"
                     value={newMessageData.responseChannelId}
                     onChange={(e) => handleNewFieldChange("responseChannelId", e.target.value)}
@@ -724,6 +729,7 @@ function DiscordSchedulerEditor() {
                 <div>
                   <label className="block font-semibold">Role ID:</label>
                   <input
+                    placeholder="Role tagged on the message"
                     type="text"
                     value={newMessageData.roleId}
                     onChange={(e) => handleNewFieldChange("roleId", e.target.value)}
@@ -739,13 +745,13 @@ function DiscordSchedulerEditor() {
               <button
                 type="button"
                 onClick={() => setTypeDropdownOpenNew((p) => !p)}
-                className="w-96 text-center mb-4 p-2 bg-blue-700 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                className="sm:w-96 w-80 text-center mb-4 p-2 bg-blue-700 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
               >
                 <p className="text-xl font-bold">{newMessageData.type === "weekly" ? "Weekly" : "Date"}</p>
               </button>
               {typeDropdownOpenNew && (
                 <div
-                  className="z-10 absolute placeholder bg-white font-bold sm:w-96 mx-auto mt-6 text-center rounded border-2 border-black focus:outline-none"
+                  className="z-10 absolute placeholder bg-white font-bold w-80 mx-auto text-center rounded border-2 border-black focus:outline-none"
                 >
                   <button
                     type="button"
@@ -904,7 +910,7 @@ function DiscordSchedulerEditor() {
           <div className="border p-2 rounded bg-white mb-4">
           <label className="block text-xl font-bold mt-2">Message Content:</label>
             <textarea
-              rows={4}
+              rows={6}
               value={newMessageData.messageContent}
               onChange={(e) => handleNewFieldChange("messageContent", e.target.value)}
               className="border p-1 w-full"
@@ -936,7 +942,7 @@ function DiscordSchedulerEditor() {
                 <div>
                 <button
                   onClick={() => handleRemoveAutomaticResponseNew(idx)}
-                  className="w-96 text-center mb-4 p-2 bg-red-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                  className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-red-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
                 >
                   <p className="text-xl font-bold">Remove</p>
                 </button>
@@ -945,14 +951,14 @@ function DiscordSchedulerEditor() {
             ))}
             <button
               onClick={handleAddAutomaticResponseNew}
-              className="w-96 text-center mb-4 p-2 bg-green-400 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+              className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-green-400 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
             >
               <p className="text-xl font-bold">Add Automatic Response</p>
             </button>
           </div>
           <button
             onClick={handleCreateNewMessage}
-            className="w-96 text-center mb-4 p-2 bg-blue-600 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+            className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-blue-600 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
           >
             <p className="text-xl font-bold">Add New Scheduled Message</p>
           </button>
