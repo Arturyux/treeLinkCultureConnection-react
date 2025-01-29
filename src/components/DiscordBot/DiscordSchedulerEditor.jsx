@@ -47,6 +47,12 @@ function DiscordSchedulerEditor() {
   const [isImageGalleryOpenEdit, setIsImageGalleryOpenEdit] = useState(false);
   const [currentPageNew, setCurrentPageNew] = useState(0);
   const [currentPageEdit, setCurrentPageEdit] = useState(0);
+  const [imageCategoryNew, setImageCategoryNew] = useState(null);
+  const [imageCategoryEdit, setImageCategoryEdit] = useState(null);
+
+  // Dropdown toggles for picking categories (instead of just open/close)
+  const [categoryDropdownOpenNew, setCategoryDropdownOpenNew] = useState(false);
+  const [categoryDropdownOpenEdit, setCategoryDropdownOpenEdit] = useState(false);
 
   useEffect(() => {
     fetchScheduledMessages();
@@ -176,12 +182,53 @@ function DiscordSchedulerEditor() {
 
   // **Image Selection Handlers (Inline Gallery)**
   useEffect(() => {
-    if (!isImageGalleryOpenNew && !isImageGalleryOpenEdit) return;
-
+    // If neither gallery is open, do nothing
+    if (!isImageGalleryOpenNew && !isImageGalleryOpenEdit) {
+      return;
+    }
+  
+    // Decide if we are in "new" or "edit" mode
+    // (If you allow only one open at a time, this is fine.)
+    const activeCategory = isImageGalleryOpenEdit ? imageCategoryEdit : imageCategoryNew;
+  
+    // If user hasn't selected a category yet, do nothing
+    if (!activeCategory) return;
+  
     const fetchImages = async () => {
       try {
-        const response = await fetch(`${import.meta.env.VITE_API_DISCORD_URL}/all-data`);
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        let endpoint = "";
+        // Decide endpoint based on category
+        switch (activeCategory) {
+          case "ALL":
+            endpoint = "/all-data";
+            break;
+          case "Climbing Pictures":
+            endpoint = "/assets/climbing-pictures";
+            break;
+          case "Boardgames Pictures":
+            endpoint = "/assets/board-games-pictures";
+            break;
+          case "Swedish Fun Pictures":
+            endpoint = "/assets/swedish-fun-pictures";
+            break;
+          case "Crafts Pictures":
+            endpoint = "/assets/crafts-pictures";
+            break;
+          case "Random":
+            endpoint = "/assets/pics-or-it-didnt-happen";
+            break;
+          default:
+            // fallback to ALL or handle error
+            endpoint = "/all-data";
+            break;
+        }
+  
+        // Fetch from the chosen endpoint
+        const response = await fetch(`${import.meta.env.VITE_API_DISCORD_URL}${endpoint}`);
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+  
         const data = await response.json();
         const shuffledImages = shuffleArray(data);
         setImages(shuffledImages);
@@ -191,9 +238,15 @@ function DiscordSchedulerEditor() {
         setImageError("Failed to load images. Please try again later.");
       }
     };
-
+  
     fetchImages();
-  }, [isImageGalleryOpenNew, isImageGalleryOpenEdit]);
+  }, [
+    // run whenever any of these change
+    isImageGalleryOpenNew,
+    isImageGalleryOpenEdit,
+    imageCategoryNew,
+    imageCategoryEdit
+  ]);
 
   function shuffleArray(array) {
     // Fisher-Yates shuffle algorithm
@@ -290,15 +343,6 @@ function DiscordSchedulerEditor() {
       arr.splice(i, 1);
       return { ...prev, automaticResponses: arr };
     });
-  }
-
-  // **New Functions for Handling Images in New Message Form (Inline Gallery)**
-  function handleAddImageNew() {
-    setIsImageGalleryOpenNew(true);
-  }
-
-  function handleAddImageEditInline() {
-    setIsImageGalleryOpenEdit(true);
   }
 
   function validateNewMessage() {
@@ -426,30 +470,39 @@ const InlineImageGallery = ({ isEditMode }) => {
   const currentPage = isEditMode ? currentPageEdit : currentPageNew;
   const setCurrentPage = isEditMode ? setCurrentPageEdit : setCurrentPageNew;
 
-  // We'll show 8 images per page
+  // Decide which category to use
+  const imageCategory = isEditMode ? imageCategoryEdit : imageCategoryNew;
+
+  // 8 images per page
   const pageSize = 8;
 
-  // Slice the images to show only the items for the current page
+  // 1) Filter images by category
+  //    (Assuming each 'img' in 'images' has a 'category' property. If not, you’d need to add that.)
+  const filteredImages = (() => {
+    if (!imageCategory || imageCategory === "ALL" || imageCategory === "Climbing Pictures" || imageCategory === "Boardgames Pictures" || imageCategory === "Swedish Fun Pictures" || imageCategory === "Crafts Pictures" || imageCategory === "Random") {
+      return images;
+    }
+    // Example: if the fetched data has a "category" field:
+    return images.filter((img) => img.category === imageCategory);
+  })();
+
+  // 2) Then slice for pagination
   const startIndex = currentPage * pageSize;
   const endIndex = startIndex + pageSize;
-  const visibleImages = images.slice(startIndex, endIndex);
+  const visibleImages = filteredImages.slice(startIndex, endIndex);
 
-  // The currently selected images (based on isEditMode)
+  // The rest is the same as your pagination logic...
   const currentSelectedImages = isEditMode ? editData.Images : newMessageData.Images;
-  // The select/deselect callbacks (based on isEditMode)
   const handleSelect = isEditMode ? handleSelectImageEdit : handleSelectImageNew;
   const handleDeselect = isEditMode ? handleDeselectImageEdit : handleDeselectImageNew;
 
-  // Handlers for next / back
   const handleNext = () => {
-    // Only go next if there are more images beyond this page
-    if (endIndex < images.length) {
+    if (endIndex < filteredImages.length) {
       setCurrentPage((prev) => prev + 1);
     }
   };
 
   const handleBack = () => {
-    // Only go back if we're not on the first page
     if (currentPage > 0) {
       setCurrentPage((prev) => prev - 1);
     }
@@ -457,49 +510,49 @@ const InlineImageGallery = ({ isEditMode }) => {
 
   return (
     <div className="mt-4">
-      <h4 className="text-lg font-semibold mb-2">Available Images (page {currentPage + 1}):</h4>
-      
+      <h4 className="text-lg font-semibold mb-2">
+        {imageCategory ? imageCategory : "Available Images"} (page {currentPage + 1})
+      </h4>
       {imageError ? (
         <p className="text-red-500">{imageError}</p>
       ) : images.length === 0 ? (
         <p>Loading images...</p>
       ) : (
         <>
-          {/* PAGINATION BUTTONS */}
-          <div className="flex justify-between mb-4">
+          {/* Pagination Controls */}
+          <div className="flex px-4 justify-between mb-4">
             <button
               onClick={handleBack}
               disabled={currentPage === 0}
-              className={`bg-gray-300 py-1 px-3 rounded border-2 border-black ${
-                currentPage === 0
-                  ? "cursor-not-allowed opacity-50"
-                  : "hover:bg-gray-400"
+              className={`w-32 text-center mx-2 mb-4 p-2 bg-gray-300 hover:bg-gray-700 rounded py-3 border-2 border-black ${
+                currentPage === 0 ? "w-32 text-center mx-2 mb-4 p-2 bg-gray-300 rounded py-3 border-2 border-black" : "hover:bg-gray-400"
               }`}
             >
-              Back
+              <p className="font-semibold text-lg">Back</p>
             </button>
             <button
               onClick={handleNext}
-              disabled={endIndex >= images.length}
-              className={`bg-gray-300 py-1 px-3 rounded border-2 border-black ${
-                endIndex >= images.length
-                  ? "cursor-not-allowed opacity-50"
-                  : "hover:bg-gray-400"
+              disabled={endIndex >= filteredImages.length}
+              className={`w-32 text-center mx-2 mb-4 p-2 bg-gray-300 hover:bg-gray-700 rounded py-3 border-2 border-black ${
+                endIndex >= filteredImages.length
+                  ? "w-32 text-center mx-2 mb-4 p-2 bg-gray-300 rounded py-3 border-2 border-black" : "hover:bg-gray-400"
               }`}
             >
-              Next
+              <p className="font-semibold text-lg">Next</p>
             </button>
           </div>
 
-          {/* ONLY SHOW THE VISIBLE IMAGES */}
+          {/* Visible Images */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {visibleImages.map((img, idx) => {
-              const isSelected = currentSelectedImages.some((selected) => selected.url === img.url);
+              const isSelected = currentSelectedImages.some(
+                (selected) => selected.url === img.url
+              );
               return (
                 <div key={idx} className="border p-2 rounded">
                   <img
                     src={img.url}
-                    alt={`Climbing ${idx + 1}`}
+                    alt={`Pic ${idx + 1}`}
                     className={`w-full h-32 object-cover rounded ${
                       img.orientation === "vertical" ? "aspect-video" : "aspect-square"
                     }`}
@@ -514,14 +567,14 @@ const InlineImageGallery = ({ isEditMode }) => {
                       onClick={() => handleDeselect(img)}
                       className="mt-2 w-full bg-red-500 text-white py-1 rounded hover:bg-red-600"
                     >
-                      Deselect
+                      <p className="font-semibold text-lg">Deselect</p>
                     </button>
                   ) : (
                     <button
                       onClick={() => handleSelect(img)}
                       className="mt-2 w-full bg-blue-500 text-white py-1 rounded hover:bg-blue-600"
                     >
-                      Select
+                      <p className="font-semibold text-lg">Select</p>
                     </button>
                   )}
                 </div>
@@ -910,12 +963,39 @@ const InlineImageGallery = ({ isEditMode }) => {
                           </button>
                         </div>
                       ))}
-                      <button
-                        onClick={handleAddImageEditInline}
-                        className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-blue-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
-                      >
-                        <p className="text-xl font-bold">Select Images from Gallery</p>
-                      </button>
+                      <div className="relative inline-block text-left mb-4">
+                        <button
+                          type="button"
+                          onClick={() => setCategoryDropdownOpenEdit((prev) => !prev)}
+                          className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-blue-500 text-white
+                                    rounded py-3 border-2 border-black shadow-custom hover:shadow-none
+                                    transition-all hover:translate-x-1 translate-y-1"
+                        >
+                          <p className="text-xl font-bold">
+                            {imageCategoryEdit ? imageCategoryEdit : "Select Images from Gallery"}
+                          </p>
+                        </button>
+
+                        {categoryDropdownOpenEdit && (
+                          <div className="z-10 absolute mt-1 bg-white rounded-lg shadow w-60 border-2 border-black">
+                            {["ALL", "Climbing Pictures", "Boardgames Pictures", "Swedish Fun Pictures", "Crafts Pictures", "Random"]
+                              .map((cat) => (
+                                <button
+                                  key={cat}
+                                  type="button"
+                                  onClick={() => {
+                                    setImageCategoryEdit(cat);
+                                    setIsImageGalleryOpenEdit(true);
+                                    setCategoryDropdownOpenEdit(false);
+                                  }}
+                                  className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                                >
+                                  {cat}
+                                </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                       {/* **Inline Image Gallery in Edit Form** */}
                       {isImageGalleryOpenEdit && (
                         <InlineImageGallery isEditMode={true} />
@@ -988,7 +1068,7 @@ const InlineImageGallery = ({ isEditMode }) => {
                   {msg.imageturnon && msg.Images && msg.Images.length > 0 && (
                     <div className="mt-4">
                       <p className="text-lg font-semibold mb-2">Images:</p>
-                      <div className="flex flex-wrap space-x-2">
+                      <div className="flex flex-wrap justify-center space-x-2">
                         {msg.Images.map((img, idx) => (
                           img.url ? (
                             <img
@@ -1394,12 +1474,43 @@ const InlineImageGallery = ({ isEditMode }) => {
                   </button>
                 </div>
               ))}
-              <button
-                onClick={handleAddImageNew}
-                className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-blue-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
-              >
-                <p className="text-xl font-bold">Select Images from Gallery</p>
-              </button>
+              <div className="relative inline-block text-left mb-4">
+                <button
+                  type="button"
+                  onClick={() => setCategoryDropdownOpenNew((prev) => !prev)}
+                  className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-blue-500 text-white
+                            rounded py-3 border-2 border-black shadow-custom hover:shadow-none
+                            transition-all hover:translate-x-1 translate-y-1"
+                >
+                  <p className="text-xl font-bold">
+                    {/* If a category is selected, show it; otherwise show a default label */}
+                    {imageCategoryNew ? imageCategoryNew : "Select Images from Gallery"}
+                  </p>
+                </button>
+
+                {categoryDropdownOpenNew && (
+                  <div className="z-10 absolute mt-1 bg-white rounded-lg shadow w-60 border-2 border-black">
+                    {["ALL", "Climbing Pictures", "Boardgames Pictures", "Swedish Fun Pictures", "Crafts Pictures"]
+                      .map((cat) => (
+                        <button
+                          key={cat}
+                          type="button"
+                          onClick={() => {
+                            // 1) Set which category we picked
+                            setImageCategoryNew(cat);
+                            // 2) Show the gallery
+                            setIsImageGalleryOpenNew(true);
+                            // 3) Close the dropdown
+                            setCategoryDropdownOpenNew(false);
+                          }}
+                          className="block w-full text-left px-4 py-2 hover:bg-gray-100"
+                        >
+                          {cat}
+                        </button>
+                    ))}
+                  </div>
+                )}
+              </div>
               {/* **Inline Image Gallery in New Message Form** */}
               {isImageGalleryOpenNew && (
                 <InlineImageGallery isEditMode={false} />
