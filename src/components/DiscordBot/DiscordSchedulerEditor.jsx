@@ -12,7 +12,7 @@ function DiscordSchedulerEditor() {
     type: "weekly",
     name: "",
     turnon: false,
-    imageturnon: false, // Initialize imageturnon for new messages
+    imageturnon: false,
     channelId: "",
     responseChannelId: "",
     roleId: "",
@@ -25,7 +25,7 @@ function DiscordSchedulerEditor() {
     timezone: "Europe/Stockholm",
     messageContent: `Here's an Example, but it's recommended to try your text in Discord\n\nExample:\n\nTo make BOLD text, you need to cover text with **example**\n\nTo make Italic style, you need to cover text with _example_\n\nYou can use Emojis as well`,
     automaticResponses: [],
-    Images: [], // Initialize Images array for new messages
+    Images: [],
   });
 
   const [addNewOpen, setAddNewOpen] = useState(false);
@@ -159,6 +159,7 @@ function DiscordSchedulerEditor() {
 
   function handleAutomaticResponseChange(i, field, val) {
     setEditData((prev) => {
+      if (!prev) return prev;
       const arr = [...(prev.automaticResponses || [])];
       arr[i] = { ...arr[i], [field]: val };
       return { ...prev, automaticResponses: arr };
@@ -180,24 +181,14 @@ function DiscordSchedulerEditor() {
     });
   }
 
-  // **Image Selection Handlers (Inline Gallery)**
   useEffect(() => {
-    // If neither gallery is open, do nothing
-    if (!isImageGalleryOpenNew && !isImageGalleryOpenEdit) {
-      return;
-    }
-  
-    // Decide if we are in "new" or "edit" mode
-    // (If you allow only one open at a time, this is fine.)
+    if (!isImageGalleryOpenNew && !isImageGalleryOpenEdit) return;
     const activeCategory = isImageGalleryOpenEdit ? imageCategoryEdit : imageCategoryNew;
-  
-    // If user hasn't selected a category yet, do nothing
     if (!activeCategory) return;
   
     const fetchImages = async () => {
       try {
         let endpoint = "";
-        // Decide endpoint based on category
         switch (activeCategory) {
           case "ALL":
             endpoint = "/all-data";
@@ -218,19 +209,23 @@ function DiscordSchedulerEditor() {
             endpoint = "/assets/pics-or-it-didnt-happen";
             break;
           default:
-            // fallback to ALL or handle error
             endpoint = "/all-data";
             break;
         }
   
-        // Fetch from the chosen endpoint
         const response = await fetch(`${import.meta.env.VITE_API_DISCORD_URL}${endpoint}`);
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
   
         const data = await response.json();
-        const shuffledImages = shuffleArray(data);
+        // <-- Map "url" => "Imgurl" here, but keep orientation for display
+        const mapped = data.map((item) => ({
+          Imgurl: item.url,
+          orientation: item.orientation,
+        }));
+        // Shuffle if needed
+        const shuffledImages = shuffleArray(mapped);
         setImages(shuffledImages);
         setImageError("");
       } catch (error) {
@@ -241,7 +236,6 @@ function DiscordSchedulerEditor() {
   
     fetchImages();
   }, [
-    // run whenever any of these change
     isImageGalleryOpenNew,
     isImageGalleryOpenEdit,
     imageCategoryNew,
@@ -258,32 +252,32 @@ function DiscordSchedulerEditor() {
     return shuffled;
   }
 
-  // **Function to Select Images in New Message Form**
   function handleSelectImageNew(image) {
-    // Prevent duplicates
-    if (newMessageData.Images.find((img) => img.url === image.url)) return;
+    // If the user has already selected this image, skip
+    if (newMessageData.Images.some((img) => img.Imgurl === image.Imgurl)) return;
+    
+    // Insert only { Imgurl } instead of the entire image object
+    const newImage = { Imgurl: image.Imgurl };
     setNewMessageData((prev) => ({
       ...prev,
-      Images: [...prev.Images, image],
+      Images: [...prev.Images, newImage],
     }));
   }
   
-
-  // **Function to Deselect Images in New Message Form**
   function handleDeselectImageNew(image) {
     setNewMessageData((prev) => ({
       ...prev,
-      Images: prev.Images.filter((img) => img.url !== image.url),
+      Images: prev.Images.filter((img) => img.Imgurl !== image.Imgurl),
     }));
   }
 
-  // **Function to Select Images in Edit Form**
   function handleSelectImageEdit(image) {
-    // Prevent duplicates
-    if (editData.Images.find((img) => img.url === image.url)) return;
+    if (editData.Images.some((img) => img.Imgurl === image.Imgurl)) return;
+    
+    const newImage = { Imgurl: image.Imgurl };
     setEditData((prev) => ({
       ...prev,
-      Images: [...(prev.Images || []), image],
+      Images: [...(prev.Images || []), newImage],
     }));
   }
   function handleRemoveImageEdit(i) {
@@ -302,11 +296,10 @@ function DiscordSchedulerEditor() {
     });
   }
 
-  // **Function to Deselect Images in Edit Form**
   function handleDeselectImageEdit(image) {
     setEditData((prev) => ({
       ...prev,
-      Images: prev.Images.filter((img) => img.url !== image.url),
+      Images: prev.Images.filter((img) => img.Imgurl !== image.Imgurl),
     }));
   }
 
@@ -437,17 +430,17 @@ function DiscordSchedulerEditor() {
 
   // **Helper Component for Image Preview**
   // eslint-disable-next-line react/prop-types
-  const ImagePreview = ({ url }) => {
+  const ImagePreview = ({ Imgurl }) => {
     const [loaded, setLoaded] = useState(false);
     const [error, setError] = useState(false);
 
     return (
       <div className="mt-2">
-        {url ? (
+        {Imgurl ? (
           <div>
             {!error ? (
               <img
-                src={url}
+                src={Imgurl}
                 alt="Preview"
                 className="w-32 h-32 object-cover rounded mx-auto"
                 onLoad={() => setLoaded(true)}
@@ -546,12 +539,12 @@ const InlineImageGallery = ({ isEditMode }) => {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             {visibleImages.map((img, idx) => {
               const isSelected = currentSelectedImages.some(
-                (selected) => selected.url === img.url
+                (selected) => selected.Imgurl === img.Imgurl
               );
               return (
                 <div key={idx} className="border p-2 rounded">
                   <img
-                    src={img.url}
+                    src={img.Imgurl}
                     alt={`Pic ${idx + 1}`}
                     className={`w-full h-32 object-cover rounded ${
                       img.orientation === "vertical" ? "aspect-video" : "aspect-square"
@@ -943,17 +936,17 @@ const InlineImageGallery = ({ isEditMode }) => {
                           <input
                             type="text"
                             placeholder="Enter Image URL"
-                            value={img.url}
+                            value={img.Imgurl}
                             onChange={(e) => {
                               const updatedImages = [...editData.Images];
-                              updatedImages[i].url = e.target.value;
+                              updatedImages[i].Imgurl = e.target.value;
                               setEditData((prev) => ({ ...prev, Images: updatedImages }));
                             }}
                             className="placeholder font-bold sm:w-96 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
                           />
                           {/* Image Preview */}
-                          {editData.imageturnon && img.url && (
-                            <ImagePreview url={img.url} />
+                          {editData.imageturnon && img.Imgurl && (
+                            <ImagePreview Imgurl={img.Imgurl} />
                           )}
                           <button
                             onClick={() => handleRemoveImageEdit(i)}
@@ -1070,10 +1063,10 @@ const InlineImageGallery = ({ isEditMode }) => {
                       <p className="text-lg font-semibold mb-2">Images:</p>
                       <div className="flex flex-wrap justify-center space-x-2">
                         {msg.Images.map((img, idx) => (
-                          img.url ? (
+                          img.Imgurl ? (
                             <img
                               key={idx}
-                              src={img.url}
+                              src={img.Imgurl}
                               alt={`Scheduled Image ${idx + 1}`}
                               className={`w-32 h-32 object-cover rounded ${
                                 img.orientation === "vertical" ? "aspect-video" : "aspect-square"
@@ -1454,17 +1447,17 @@ const InlineImageGallery = ({ isEditMode }) => {
                   <input
                     type="text"
                     placeholder="Enter Image URL"
-                    value={img.url}
+                    value={img.Imgurl}
                     onChange={(e) => {
                       const updatedImages = [...newMessageData.Images];
-                      updatedImages[idx].url = e.target.value;
+                      updatedImages[idx].Imgurl = e.target.value;
                       setNewMessageData((prev) => ({ ...prev, Images: updatedImages }));
                     }}
                     className="placeholder font-bold sm:w-96 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
                   />
                   {/* Image Preview */}
-                  {newMessageData.imageturnon && img.url && (
-                    <ImagePreview url={img.url} />
+                  {newMessageData.imageturnon && img.Imgurl && (
+                    <ImagePreview Imgurl={img.Imgurl} />
                   )}
                   <button
                     onClick={() => handleRemoveImageNew(idx)}
