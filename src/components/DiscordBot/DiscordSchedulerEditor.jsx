@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import DatePicker from "react-datepicker";
-import EditableTextArea from "./EditableTextArea"
+import EditableTextArea from "./EditableTextArea";
 import "react-datepicker/dist/react-datepicker.css";
 
 function DiscordSchedulerEditor() {
@@ -12,6 +12,7 @@ function DiscordSchedulerEditor() {
     type: "weekly",
     name: "",
     turnon: false,
+    imageturnon: false, // Initialize imageturnon for new messages
     channelId: "",
     responseChannelId: "",
     roleId: "",
@@ -22,8 +23,9 @@ function DiscordSchedulerEditor() {
     daybefore: "0",
     seconds: "0",
     timezone: "Europe/Stockholm",
-    messageContent: `Here's a Example, but recommended try your text in Discord\n\nExample,\n\nTo make BOLD text, You need to cover text with **example**\n\nTo make Italic style, You need to cover text with _example_\n\nYou can use Emojis as well`,
+    messageContent: `Here's an Example, but it's recommended to try your text in Discord\n\nExample:\n\nTo make BOLD text, you need to cover text with **example**\n\nTo make Italic style, you need to cover text with _example_\n\nYou can use Emojis as well`,
     automaticResponses: [],
+    Images: [], // Initialize Images array for new messages
   });
 
   const [addNewOpen, setAddNewOpen] = useState(false);
@@ -37,6 +39,14 @@ function DiscordSchedulerEditor() {
   const [hourDropdownOpenEdit, setHourDropdownOpenEdit] = useState(false);
   const [minutesDropdownOpenEdit, setMinutesDropdownOpenEdit] = useState(false);
   const [dayOfWeekDropdownOpenEdit, setDayOfWeekDropdownOpenEdit] = useState(false);
+
+  // **New States for Inline Image Selection**
+  const [images, setImages] = useState([]);
+  const [imageError, setImageError] = useState("");
+  const [isImageGalleryOpenNew, setIsImageGalleryOpenNew] = useState(false);
+  const [isImageGalleryOpenEdit, setIsImageGalleryOpenEdit] = useState(false);
+  const [currentPageNew, setCurrentPageNew] = useState(0);
+  const [currentPageEdit, setCurrentPageEdit] = useState(0);
 
   useEffect(() => {
     fetchScheduledMessages();
@@ -132,6 +142,11 @@ function DiscordSchedulerEditor() {
     setEditData((prev) => ({ ...prev, turnon: !prev.turnon }));
   }
 
+  function toggleImageTurnOnEdit() {
+    if (!editData) return;
+    setEditData((prev) => ({ ...prev, imageturnon: !prev.imageturnon }));
+  }
+
   function handleFieldChange(field, value) {
     setEditData((prev) => ({ ...prev, [field]: value }));
   }
@@ -159,8 +174,95 @@ function DiscordSchedulerEditor() {
     });
   }
 
+  // **Image Selection Handlers (Inline Gallery)**
+  useEffect(() => {
+    if (!isImageGalleryOpenNew && !isImageGalleryOpenEdit) return;
+
+    const fetchImages = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_API_DISCORD_URL}/all-data`);
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+        const shuffledImages = shuffleArray(data);
+        setImages(shuffledImages);
+        setImageError("");
+      } catch (error) {
+        console.error("Error fetching images:", error);
+        setImageError("Failed to load images. Please try again later.");
+      }
+    };
+
+    fetchImages();
+  }, [isImageGalleryOpenNew, isImageGalleryOpenEdit]);
+
+  function shuffleArray(array) {
+    // Fisher-Yates shuffle algorithm
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  // **Function to Select Images in New Message Form**
+  function handleSelectImageNew(image) {
+    // Prevent duplicates
+    if (newMessageData.Images.find((img) => img.url === image.url)) return;
+    setNewMessageData((prev) => ({
+      ...prev,
+      Images: [...prev.Images, image],
+    }));
+  }
+  
+
+  // **Function to Deselect Images in New Message Form**
+  function handleDeselectImageNew(image) {
+    setNewMessageData((prev) => ({
+      ...prev,
+      Images: prev.Images.filter((img) => img.url !== image.url),
+    }));
+  }
+
+  // **Function to Select Images in Edit Form**
+  function handleSelectImageEdit(image) {
+    // Prevent duplicates
+    if (editData.Images.find((img) => img.url === image.url)) return;
+    setEditData((prev) => ({
+      ...prev,
+      Images: [...(prev.Images || []), image],
+    }));
+  }
+  function handleRemoveImageEdit(i) {
+    setEditData((prev) => {
+      const arr = [...(prev.Images || [])];
+      arr.splice(i, 1);
+      return { ...prev, Images: arr };
+    });
+  }
+  
+  function handleRemoveImageNew(i) {
+    setNewMessageData((prev) => {
+      const arr = [...(prev.Images || [])];
+      arr.splice(i, 1);
+      return { ...prev, Images: arr };
+    });
+  }
+
+  // **Function to Deselect Images in Edit Form**
+  function handleDeselectImageEdit(image) {
+    setEditData((prev) => ({
+      ...prev,
+      Images: prev.Images.filter((img) => img.url !== image.url),
+    }));
+  }
+
   function toggleNewTurnOn() {
     setNewMessageData((prev) => ({ ...prev, turnon: !prev.turnon }));
+  }
+
+  function toggleNewImageTurnOn() {
+    setNewMessageData((prev) => ({ ...prev, imageturnon: !prev.imageturnon }));
   }
 
   function handleNewFieldChange(field, value) {
@@ -190,6 +292,15 @@ function DiscordSchedulerEditor() {
     });
   }
 
+  // **New Functions for Handling Images in New Message Form (Inline Gallery)**
+  function handleAddImageNew() {
+    setIsImageGalleryOpenNew(true);
+  }
+
+  function handleAddImageEditInline() {
+    setIsImageGalleryOpenEdit(true);
+  }
+
   function validateNewMessage() {
     if (!newMessageData.name.trim()) return false;
     if (!newMessageData.messageContent.trim()) return false;
@@ -197,7 +308,12 @@ function DiscordSchedulerEditor() {
     if (!newMessageData.responseChannelId.trim()) return false;
     if (!newMessageData.roleId.trim()) return false;
     if (newMessageData.type === "weekly") {
-      if (newMessageData.hour === "" || newMessageData.minutes === "" || newMessageData.dayoftheweek === "") return false;
+      if (
+        newMessageData.hour === "" ||
+        newMessageData.minutes === "" ||
+        newMessageData.dayoftheweek === ""
+      )
+        return false;
     } else if (newMessageData.type === "date") {
       if (!newMessageData.selectedDate) return false;
     }
@@ -232,6 +348,7 @@ function DiscordSchedulerEditor() {
         type: "weekly",
         name: "",
         turnon: false,
+        imageturnon: false, // Reset imageturnon after creation
         channelId: "",
         responseChannelId: "",
         roleId: "",
@@ -244,8 +361,10 @@ function DiscordSchedulerEditor() {
         timezone: "Europe/Stockholm",
         messageContent: `Sup all <@&COMMITTEE_ROLE_ID>,\n\n**Friendly reminder:** Need to make a post on social media!\n\nReact to this message\n❤️ - Automatically send a message in Discord\n\n*Not necessary to react; you can send message manually.*`,
         automaticResponses: [{ title: "", content: "" }],
+        Images: [], // Reset Images array after creation
       });
       setAddNewOpen(false);
+      setIsImageGalleryOpenNew(false);
     } catch (error) {
       console.error("Error creating new scheduled message:", error);
     }
@@ -253,16 +372,167 @@ function DiscordSchedulerEditor() {
 
   function DaysOfWeekLabel(val) {
     switch (val) {
-      case "0": return "Sunday";
-      case "1": return "Monday";
-      case "2": return "Tuesday";
-      case "3": return "Wednesday";
-      case "4": return "Thursday";
-      case "5": return "Friday";
-      case "6": return "Saturday";
-      default: return "Sunday";
+      case "0":
+        return "Sunday";
+      case "1":
+        return "Monday";
+      case "2":
+        return "Tuesday";
+      case "3":
+        return "Wednesday";
+      case "4":
+        return "Thursday";
+      case "5":
+        return "Friday";
+      case "6":
+        return "Saturday";
+      default:
+        return "Sunday";
     }
   }
+
+  // **Helper Component for Image Preview**
+  // eslint-disable-next-line react/prop-types
+  const ImagePreview = ({ url }) => {
+    const [loaded, setLoaded] = useState(false);
+    const [error, setError] = useState(false);
+
+    return (
+      <div className="mt-2">
+        {url ? (
+          <div>
+            {!error ? (
+              <img
+                src={url}
+                alt="Preview"
+                className="w-32 h-32 object-cover rounded mx-auto"
+                onLoad={() => setLoaded(true)}
+                onError={() => setError(true)}
+              />
+            ) : (
+              <p className="text-red-500 text-lg font-semibold">Failed to load image.</p>
+            )}
+            {!loaded && !error && <p className="text-lg font-semibold">Loading preview...</p>}
+          </div>
+        ) : null}
+      </div>
+    );
+  };
+
+  // **Inline Image Gallery Component**
+// eslint-disable-next-line react/prop-types
+const InlineImageGallery = ({ isEditMode }) => {
+  // Decide which "page" state to use
+  const currentPage = isEditMode ? currentPageEdit : currentPageNew;
+  const setCurrentPage = isEditMode ? setCurrentPageEdit : setCurrentPageNew;
+
+  // We'll show 8 images per page
+  const pageSize = 8;
+
+  // Slice the images to show only the items for the current page
+  const startIndex = currentPage * pageSize;
+  const endIndex = startIndex + pageSize;
+  const visibleImages = images.slice(startIndex, endIndex);
+
+  // The currently selected images (based on isEditMode)
+  const currentSelectedImages = isEditMode ? editData.Images : newMessageData.Images;
+  // The select/deselect callbacks (based on isEditMode)
+  const handleSelect = isEditMode ? handleSelectImageEdit : handleSelectImageNew;
+  const handleDeselect = isEditMode ? handleDeselectImageEdit : handleDeselectImageNew;
+
+  // Handlers for next / back
+  const handleNext = () => {
+    // Only go next if there are more images beyond this page
+    if (endIndex < images.length) {
+      setCurrentPage((prev) => prev + 1);
+    }
+  };
+
+  const handleBack = () => {
+    // Only go back if we're not on the first page
+    if (currentPage > 0) {
+      setCurrentPage((prev) => prev - 1);
+    }
+  };
+
+  return (
+    <div className="mt-4">
+      <h4 className="text-lg font-semibold mb-2">Available Images (page {currentPage + 1}):</h4>
+      
+      {imageError ? (
+        <p className="text-red-500">{imageError}</p>
+      ) : images.length === 0 ? (
+        <p>Loading images...</p>
+      ) : (
+        <>
+          {/* PAGINATION BUTTONS */}
+          <div className="flex justify-between mb-4">
+            <button
+              onClick={handleBack}
+              disabled={currentPage === 0}
+              className={`bg-gray-300 py-1 px-3 rounded border-2 border-black ${
+                currentPage === 0
+                  ? "cursor-not-allowed opacity-50"
+                  : "hover:bg-gray-400"
+              }`}
+            >
+              Back
+            </button>
+            <button
+              onClick={handleNext}
+              disabled={endIndex >= images.length}
+              className={`bg-gray-300 py-1 px-3 rounded border-2 border-black ${
+                endIndex >= images.length
+                  ? "cursor-not-allowed opacity-50"
+                  : "hover:bg-gray-400"
+              }`}
+            >
+              Next
+            </button>
+          </div>
+
+          {/* ONLY SHOW THE VISIBLE IMAGES */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            {visibleImages.map((img, idx) => {
+              const isSelected = currentSelectedImages.some((selected) => selected.url === img.url);
+              return (
+                <div key={idx} className="border p-2 rounded">
+                  <img
+                    src={img.url}
+                    alt={`Climbing ${idx + 1}`}
+                    className={`w-full h-32 object-cover rounded ${
+                      img.orientation === "vertical" ? "aspect-video" : "aspect-square"
+                    }`}
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src =
+                        "https://via.placeholder.com/150?text=Image+Not+Found";
+                    }}
+                  />
+                  {isSelected ? (
+                    <button
+                      onClick={() => handleDeselect(img)}
+                      className="mt-2 w-full bg-red-500 text-white py-1 rounded hover:bg-red-600"
+                    >
+                      Deselect
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => handleSelect(img)}
+                      className="mt-2 w-full bg-blue-500 text-white py-1 rounded hover:bg-blue-600"
+                    >
+                      Select
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
   return (
     <div className="py-6">
@@ -276,7 +546,11 @@ function DiscordSchedulerEditor() {
             const isEditing = index === editIndex;
             if (isEditing && editData) {
               return (
-                <div key={index} className="sm:w-[70%] w-[97%] mx-auto bg-white py-10 mt-6 rounded-lg border-2 border-black focus:outline-none placeholder">
+                <div
+                  key={index}
+                  className="sm:w-[70%] w-[97%] mx-auto bg-white py-10 mt-6 rounded-lg border-2 border-black focus:outline-none placeholder"
+                >
+                  {/* Editing Form */}
                   <div className="space-y-2">
                     <div>
                       <label className="text-5xl font-semibold mb-4">Editing {editData.name}</label>
@@ -289,161 +563,186 @@ function DiscordSchedulerEditor() {
                         className="placeholder font-bold sm:w-96 mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
                       />
                     </div>
-                    <div>
-                      <label className="block font-semibold">Turn On:</label>
-                      <button
-                        type="button"
-                        onClick={toggleTurnOnEdit}
-                        className={`px-4 py-2 rounded text-white ${
-                          editData.turnon ? "w-32 text-center mx-2 mb-4 p-2 bg-green-600 text-white rounded py-3 border-2 border-black" : "w-32 text-center mx-2 mb-4 p-2 bg-red-600 text-white rounded py-3 border-2 border-black"
-                        }`}
-                      >
-                        <p className="text-lg font-bold">{editData.turnon ? "Enabled" : "Disabled"}</p>
-                      </button>
+                    <div className="mx-auto">
+                      {/* Turn On Toggle */}
+                      <div>
+                        <label className="block font-semibold">Turn On:</label>
+                        <button
+                          type="button"
+                          onClick={toggleTurnOnEdit}
+                          className={`px-4 py-2 rounded text-white ${
+                            editData.turnon
+                              ? "w-32 text-center mx-2 mb-4 p-2 bg-green-600 hover:bg-green-700 rounded py-3 border-2 border-black"
+                              : "w-32 text-center mx-2 mb-4 p-2 bg-red-600 hover:bg-red-700 rounded py-3 border-2 border-black"
+                          }`}
+                        >
+                          <p className="text-lg font-bold">{editData.turnon ? "Enabled" : "Disabled"}</p>
+                        </button>
+                      </div>
+                      {/* Image Turn On Toggle */}
+                      <div>
+                        <label className="block font-semibold">Images Enabled:</label>
+                        <button
+                          type="button"
+                          onClick={toggleImageTurnOnEdit}
+                          className={`px-4 py-2 rounded text-white ${
+                            editData.imageturnon
+                              ? "w-32 text-center mx-2 mb-4 p-2 bg-green-600 hover:bg-green-700 rounded py-3 border-2 border-black"
+                              : "w-32 text-center mx-2 mb-4 p-2 bg-red-600 hover:bg-red-700 rounded py-3 border-2 border-black"
+                          }`}
+                        >
+                          <p className="text-lg font-bold">{editData.imageturnon ? "Enabled" : "Disabled"}</p>
+                        </button>
+                      </div>
                     </div>
                     <div className="text-center mb-2">
                       <label className="font-semibold text-lg">Discord Inputs</label>
                     </div>
                     <button
-                        className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                        onClick={() => window.open("https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID#h_01HRSTXPS5CRSRTWYCGPHZQ37H", "_blank")}
-                      >
-                        How to find IDs on Discord
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                      onClick={() =>
+                        window.open(
+                          "https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID#h_01HRSTXPS5CRSRTWYCGPHZQ37H",
+                          "_blank"
+                        )
+                      }
+                    >
+                      How to find IDs on Discord
                     </button>
-                    </div>
-                    <div className="block relative mb-4">
+                  </div>
+                  <div className="block relative mb-4">
+                    <button
+                      type="button"
+                      onClick={() => setDiscordInputsOpenEdit((p) => !p)}
+                      className="sm:w-96 w-80 mt-6 text-center p-2 bg-blue-700 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                    >
+                      <p className="text-lg font-semibold">
+                        {discordInputsOpenEdit ? "Hide" : "Show"} Inputs
+                      </p>
+                    </button>
+                    {discordInputsOpenEdit && (
+                      <div
+                        className="z-20 w-80 absolute left-1/2 top-full transform -translate-x-1/2 mt-2 
+                             p-4 bg-white font-bold sm:w-96 items-center text-center 
+                             rounded border-2 border-black focus:outline-none"
+                      >
+                        <div className="mb-2">
+                          <label className="block font-semibold">Channel ID:</label>
+                          <input
+                            type="text"
+                            placeholder="Channel for first message"
+                            value={editData.channelId || ""}
+                            onChange={(e) => handleFieldChange("channelId", e.target.value)}
+                            className="placeholder font-bold w-full mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                          />
+                        </div>
+                        <div className="mb-2">
+                          <label className="block font-semibold">Response Channel ID:</label>
+                          <input
+                            type="text"
+                            placeholder="Channel for Auto Response"
+                            value={editData.responseChannelId || ""}
+                            onChange={(e) => handleFieldChange("responseChannelId", e.target.value)}
+                            className="placeholder font-bold w-full mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                          />
+                        </div>
+                        <div>
+                          <label className="block font-semibold">Role ID:</label>
+                          <input
+                            type="text"
+                            placeholder="Role tagged on the message"
+                            value={editData.roleId || ""}
+                            onChange={(e) => handleFieldChange("roleId", e.target.value)}
+                            className="placeholder font-bold w-full mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  <div>
+                    <label className="block text-lg font-semibold">Type:</label>
+                    <div className="relative inline-block text-left">
                       <button
                         type="button"
-                        onClick={() => setDiscordInputsOpenEdit((p) => !p)}
-                        className="sm:w-96 w-80 mt-6 text-center p-2 bg-blue-700 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                        onClick={() => setTypeDropdownOpenEdit((p) => !p)}
+                        className="sm:w-96 w-80 text-center mb-2 p-2 bg-blue-700 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
                       >
-                        <p className="text-lg font-semibold">{discordInputsOpenEdit ? "Hide" : "Show"} Inputs</p>
+                        <p className="text-lg font-semibold">
+                          {editData.type === "weekly" ? "Weekly" : "Date"}
+                        </p>
                       </button>
-                      {discordInputsOpenEdit && (
+                      {typeDropdownOpenEdit && (
                         <div
-                          className="z-20 w-80 absolute left-1/2 top-full transform -translate-x-1/2 mt-2 
-                 p-4 bg-white font-bold sm:w-96 items-center text-center 
-                 rounded border-2 border-black focus:outline-none"
+                          className="z-10 absolute placeholder bg-white font-bold w-80 mx-auto text-center rounded border-2 border-black focus:outline-none"
                         >
-                          <div className="mb-2">
-                            <label className="block font-semibold">Channel ID:</label>
-                            <input
-                              type="text"
-                              placeholder="Channel for first message"
-                              value={editData.channelId || ""}
-                              onChange={(e) => handleFieldChange("channelId", e.target.value)}
-                              className="placeholder font-bold w-full mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
-                            />
-                          </div>
-                          <div className="mb-2">
-                            <label className="block font-semibold">Response Channel ID:</label>
-                            <input
-                              type="text"
-                              placeholder="Channel for Auto Response"
-                              value={editData.responseChannelId || ""}
-                              onChange={(e) => handleFieldChange("responseChannelId", e.target.value)}
-                              className="placeholder font-bold w-full mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
-                            />
-                          </div>
-                          <div>
-                            <label className="block font-semibold">Role ID:</label>
-                            <input
-                              type="text"
-                              placeholder="Role tagged on the message"
-                              value={editData.roleId || ""}
-                              onChange={(e) => handleFieldChange("roleId", e.target.value)}
-                              className="placeholder font-bold w-full mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
-                            />
-                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleFieldChange("type", "weekly");
+                              setTypeDropdownOpenEdit(false);
+                            }}
+                            className="block w-full border-b-2 border-black text-center px-4 py-4 hover:bg-gray-100"
+                          >
+                            <p className="text-lg font-bold">Weekly</p>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleFieldChange("type", "date");
+                              setTypeDropdownOpenEdit(false);
+                            }}
+                            className="block w-full text-center px-4 py-4 hover:bg-gray-100"
+                          >
+                            <p className="text-lg font-bold">Date</p>
+                          </button>
                         </div>
                       )}
                     </div>
-                    <div>
-                      <label className="block text-lg font-semibold mt-6">Type:</label>
-                      <div className="relative inline-block text-left">
-                        <button
-                          type="button"
-                          onClick={() => setTypeDropdownOpenEdit((p) => !p)}
-                          className="sm:w-96 w-80 text-center mb-2 p-2 bg-blue-700 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
-                        >
-                          <p className="text-lg font-semibold">{editData.type === "weekly" ? "Weekly" : "Date"}</p>
-
-                        </button>
-                        {typeDropdownOpenEdit && (
-                          <div
-                            className="z-10 absolute placeholder bg-white font-bold w-80 mx-auto text-center rounded border-2 border-black focus:outline-none"
-                          >
-                            <button
-                              type="button"
-                              onClick={() => {
-                                handleFieldChange("type", "weekly");
-                                setTypeDropdownOpenEdit(false);
-                              }}
-                              className="block w-full border-b-2 border-black text-center px-4 py-4 hover:bg-gray-100"
-                            >
-                              <p className="text-lg font-bold">Weekly</p>
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                handleFieldChange("type", "date");
-                                setTypeDropdownOpenEdit(false);
-                              }}
-                              className="block w-full text-center px-4 py-4 hover:bg-gray-100"
-                            >
-                              <p className="text-lg font-bold">Date</p>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                    {editData.type === "weekly" && (
-                      <div className="border mt-6 p-2 rounded bg-white m-4">
+                  </div>
+                  {editData.type === "weekly" && (
+                    <div className="border mt-6 p-2 rounded bg-white m-4">
                       <p className="block text-xl font-bold mt-2">Weekly Schedule:</p>
                       <div className="mx-auto space-x-2 mb-2">
                         <label className="font-semibold">Hour:</label>
                         <div className="relative inline-block text-left">
-                            <button
-                              type="button"
-                              onClick={() => setHourDropdownOpenEdit((p) => !p)}
-                              className="w-16 text-center my-4 p-2 bg-blue-700 text-white rounded py-1 border-2 border-black"
-                            >
-                              <p className="font-semibold text-lg">{editData.hour || 0}</p>
-                            </button>
-                            {hourDropdownOpenEdit && (
-                              <div
-                                className="z-10 absolute mt-1 bg-white 
-                                           rounded-lg shadow w-24 p-1"
-                              >
-                                {[...Array(24)].map((_, i) => (
-                                  <button
-                                    key={i}
-                                    type="button"
-                                    onClick={() => {
-                                      handleFieldChange("hour", i.toString());
-                                      setHourDropdownOpenEdit(false);
-                                    }}
-                                    className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-                                  >
-                                    {i < 10 ? `0${i}` : i}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                          <label className="text-lg font-semibold">Minutes:</label>
-                          <div className="relative inline-block text-left">
-                            <button
-                              type="button"
-                              onClick={() => setMinutesDropdownOpenEdit((p) => !p)}
-                              className="w-16 text-center my-4 p-2 bg-blue-700 text-white rounded py-1 border-2 border-black"
-                            >
-                              <p className="font-semibold text-lg">{editData.minutes || 0}</p>
-                            </button>
-                            {minutesDropdownOpenEdit && (
-                              <div className="z-10 absolute mt-1 bg-white 
-                                              rounded-lg shadow w-24 p-1">
-                                {["0","5","10","15","20","25","30","35","40","45","50","55"].map((val) => (
+                          <button
+                            type="button"
+                            onClick={() => setHourDropdownOpenEdit((p) => !p)}
+                            className="w-16 text-center my-4 p-2 bg-blue-700 text-white rounded py-1 border-2 border-black"
+                          >
+                            <p className="font-semibold text-lg">{editData.hour || "00"}</p>
+                          </button>
+                          {hourDropdownOpenEdit && (
+                            <div className="z-10 absolute mt-1 bg-white rounded-lg shadow w-24 p-1">
+                              {[...Array(24)].map((_, i) => (
+                                <button
+                                  key={i}
+                                  type="button"
+                                  onClick={() => {
+                                    handleFieldChange("hour", i.toString());
+                                    setHourDropdownOpenEdit(false);
+                                  }}
+                                  className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                                >
+                                  {i < 10 ? `0${i}` : i}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                        <label className="text-lg font-semibold">Minutes:</label>
+                        <div className="relative inline-block text-left">
+                          <button
+                            type="button"
+                            onClick={() => setMinutesDropdownOpenEdit((p) => !p)}
+                            className="w-16 text-center my-4 p-2 bg-blue-700 text-white rounded py-1 border-2 border-black"
+                          >
+                            <p className="font-semibold text-lg">{editData.minutes || "00"}</p>
+                          </button>
+                          {minutesDropdownOpenEdit && (
+                            <div className="z-10 absolute mt-1 bg-white rounded-lg shadow w-24 p-1">
+                              {["0", "5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(
+                                (val) => (
                                   <button
                                     key={val}
                                     type="button"
@@ -455,164 +754,223 @@ function DiscordSchedulerEditor() {
                                   >
                                     {val === "0" ? "00" : val}
                                   </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        <div className=" mx-auto items-center space-x-2 mt-2">
-                          <label className="text-lg font-semibold">Day:</label>
-                          <div className="relative inline-block">
-                            <button
-                              type="button"
-                              placeholder="0"
-                              onClick={() => setDayOfWeekDropdownOpenEdit((p) => !p)}
-                              className="text-center mb-4 px-4 bg-blue-700 text-white rounded py-1 border-2 border-black"
-                            >
-                              <p className="font-semibold text-lg">{DaysOfWeekLabel(editData.dayoftheweek)}</p>
-                            </button>
-                            {dayOfWeekDropdownOpenEdit && (
-                              <div className="z-10 absolute mt-1 bg-white rounded-lg shadow w-24 p-1">
-                                {["0","1","2","3","4","5","6"].map((val) => (
-                                  <button
-                                    key={val}
-                                    type="button"
-                                    onClick={() => {
-                                      handleFieldChange("dayoftheweek", val);
-                                      setDayOfWeekDropdownOpenEdit(false);
-                                    }}
-                                    className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-                                  >
-                                    {DaysOfWeekLabel(val)}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
+                                )
+                              )}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    )}
-                    {editData.type === "date" && (
-                      <div className="border p-2 my-6 rounded bg-white">
-                        <p className="font-semibold">One-Time Date Schedule:</p>
-                        <div className="mt-2">
-                          <DatePicker
-                            selected={editData.selectedDate}
-                            onChange={(date) => handleFieldChange("selectedDate", date)}
-                            dateFormat="yyyy-MM-dd"
-                            className="placeholder font-bold sm:w-96 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
-                          />
-                          <label className="block font-semibold mt-2">Day Before:</label>
-                          <div className="mx-auto space-x-1">
-                            {/* Minus Button */}
-                            <button
-                              type="button"
-                              className="bg-green-500 text-white font-bold rounded-l hover:bg-green-600 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
-                              onClick={() =>
-                                handleFieldChange("daybefore", String(Number(editData.daybefore) + 1))
-                              }
-                            >
-                              <p className="font-bold text-lg">+</p>
-                            </button>
-                            <input
-                              type="text"
-                              value={editData.daybefore}
-                              onChange={(e) => handleFieldChange("daybefore", e.target.value)}
-                              className="placeholder font-bold sm:w-54 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
-                            />
-
-                            {/* Plus Button */}
-                            <button
-                              type="button"
-                              className="bg-red-500 text-white font-bold rounded-l hover:bg-red-600 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
-                              onClick={() =>
-                                handleFieldChange("daybefore", String(Number(editData.daybefore) - 1))
-                              }
-                            >
-                              <p className="font-bold text-lg">-</p>
-                            </button>
-                          </div>
+                      <div className="mx-auto items-center space-x-2 mt-2">
+                        <label className="text-lg font-semibold">Day:</label>
+                        <div className="relative inline-block text-left">
+                          <button
+                            type="button"
+                            onClick={() => setDayOfWeekDropdownOpenEdit((p) => !p)}
+                            className="text-center mb-4 px-4 bg-blue-700 text-white rounded py-1 border-2 border-black"
+                          >
+                            <p className="font-semibold text-lg">{DaysOfWeekLabel(editData.dayoftheweek)}</p>
+                          </button>
+                          {dayOfWeekDropdownOpenEdit && (
+                            <div className="z-10 absolute mt-1 bg-white rounded-lg shadow w-24 p-1">
+                              {["0", "1", "2", "3", "4", "5", "6"].map((val) => (
+                                <button
+                                  key={val}
+                                  type="button"
+                                  onClick={() => {
+                                    handleFieldChange("dayoftheweek", val);
+                                    setDayOfWeekDropdownOpenEdit(false);
+                                  }}
+                                  className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                                >
+                                  {DaysOfWeekLabel(val)}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       </div>
-                    )}
-                    <div>
-                      <label className="block text-lg font-semibold">Message Content:</label>
-                      <textarea
-                        rows={6}
-                        value={editData.messageContent || ""}
-                        onChange={(e) => handleFieldChange("messageContent", e.target.value)}
-                        className="border border-black p-2 w-[95%]"
-                      />
                     </div>
-                    <div className="mt-4 border-t pt-2">
-                      <p className="text-lg font-semibold mb-4">Automatic Responses:</p>
-                      {(editData.automaticResponses || []).map((resp, i) => (
-                        <div key={i} className="border border-black w-[95%] mx-auto p-2 mb-2 rounded bg-white">
-                          <label className="block text-lg m-2 font-semibold">Title:</label>
+                  )}
+                  {editData.type === "date" && (
+                    <div className="border p-2 my-6 rounded bg-white m-4">
+                      <p className="font-semibold">One-Time Date Schedule:</p>
+                      <div className="mt-2">
+                        <DatePicker
+                          selected={editData.selectedDate}
+                          onChange={(date) => handleFieldChange("selectedDate", date)}
+                          dateFormat="yyyy-MM-dd"
+                          className="placeholder font-bold sm:w-96 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                        />
+                        <label className="block font-semibold mt-2">Day Before:</label>
+                        <div className="mx-auto space-x-1">
+                          {/* Plus Button */}
+                          <button
+                            type="button"
+                            className="bg-green-500 text-white font-bold rounded-l hover:bg-green-600 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                            onClick={() =>
+                              handleFieldChange("daybefore", String(Number(editData.daybefore) + 1))
+                            }
+                          >
+                            <p className="font-bold text-lg">+</p>
+                          </button>
                           <input
                             type="text"
-                            placeholder="Text"
-                            value={resp.title}
-                            onChange={(e) => handleAutomaticResponseChange(i, "title", e.target.value)}
+                            value={editData.daybefore}
+                            onChange={(e) => handleFieldChange("daybefore", e.target.value)}
                             className="placeholder font-bold sm:w-54 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
                           />
-                          <label className="block text-lg m-2 font-semibold">Content:</label>
-                          {resp ? (
-                            <EditableTextArea
-                              idx={i}
-                              resp={resp}
-                              handleNewAutoRespFieldChange={handleAutomaticResponseChange}
-                              RoleIDfetcher={editData.roleId}
-                            />
-                          ) : (
-                            <p>Loading data...</p>
+
+                          {/* Minus Button */}
+                          <button
+                            type="button"
+                            className="bg-red-500 text-white font-bold rounded-l hover:bg-red-600 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                            onClick={() =>
+                              handleFieldChange("daybefore", String(Number(editData.daybefore) - 1))
+                            }
+                          >
+                            <p className="font-bold text-lg">-</p>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div>
+                    <label className="block text-lg font-semibold">Message Content:</label>
+                    <textarea
+                      rows={6}
+                      value={editData.messageContent || ""}
+                      onChange={(e) => handleFieldChange("messageContent", e.target.value)}
+                      className="border border-black p-2 w-[95%]"
+                    />
+                  </div>
+                  {/* **Automatic Responses Section in Edit Form** */}
+                  <div className="mt-4 border-t pt-2">
+                    <p className="text-lg font-semibold mb-4">Automatic Responses:</p>
+                    {(editData.automaticResponses || []).map((resp, i) => (
+                      <div key={i} className="border border-black w-[95%] mx-auto p-2 mb-2 rounded bg-white">
+                        <label className="block text-lg font-semibold">Title:</label>
+                        <input
+                          type="text"
+                          placeholder="Text"
+                          value={resp.title}
+                          onChange={(e) => handleAutomaticResponseChange(i, "title", e.target.value)}
+                          className="placeholder font-bold sm:w-96 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                        />
+                        <label className="block text-lg font-semibold mt-2">Content:</label>
+                        {resp ? (
+                          <EditableTextArea
+                            idx={i}
+                            resp={resp}
+                            handleNewAutoRespFieldChange={handleAutomaticResponseChange}
+                            RoleIDfetcher={editData.roleId}
+                          />
+                        ) : (
+                          <p>Loading data...</p>
+                        )}
+                        <button
+                          onClick={() => handleRemoveAutomaticResponseEdit(i)}
+                          className="sm:w-96 w-[85%] text-center mt-2 p-2 bg-red-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                        >
+                          <p className="text-xl font-bold">Remove Automatic Response</p>
+                        </button>
+                      </div>
+                    ))}
+                    <button
+                      onClick={handleAddAutomaticResponseEdit}
+                      className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-green-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                    >
+                      <p className="text-xl font-bold">Add Automatic Response</p>
+                    </button>
+                    {/* **Images Section in Edit Form** */}
+                    <div className="mt-4 border-t pt-2">
+                      <p className="text-lg font-semibold mb-4">Images:</p>
+                      {(editData.Images || []).map((img, i) => (
+                        <div key={i} className="border border-black w-[95%] mx-auto p-2 mb-2 rounded bg-white">
+                          <label className="block text-lg font-semibold">Image URL {i + 1}:</label>
+                          <input
+                            type="text"
+                            placeholder="Enter Image URL"
+                            value={img.url}
+                            onChange={(e) => {
+                              const updatedImages = [...editData.Images];
+                              updatedImages[i].url = e.target.value;
+                              setEditData((prev) => ({ ...prev, Images: updatedImages }));
+                            }}
+                            className="placeholder font-bold sm:w-96 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                          />
+                          {/* Image Preview */}
+                          {editData.imageturnon && img.url && (
+                            <ImagePreview url={img.url} />
                           )}
                           <button
-                            onClick={() => handleRemoveAutomaticResponseEdit(i)}
-                            className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-red-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
-                            >
-                              <p className="text-xl font-bold">Remove</p>
-                            </button>
+                            onClick={() => handleRemoveImageEdit(i)}
+                            className="sm:w-96 w-[85%] text-center mt-2 p-2 bg-red-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                          >
+                            <p className="text-xl font-bold">Remove Image</p>
+                          </button>
                         </div>
                       ))}
                       <button
-                        onClick={handleAddAutomaticResponseEdit}
-                        className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-green-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                        onClick={handleAddImageEditInline}
+                        className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-blue-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
                       >
-                        <p className="text-xl font-bold">Add Automatic Response</p>
+                        <p className="text-xl font-bold">Select Images from Gallery</p>
                       </button>
-                    </div>
-                    <div className="mt-4 space-x-2">
-                      <button
-                        onClick={handleSave}
-                        className="w-32 text-center mx-2 mb-4 p-2 bg-blue-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
-                      >
-                        <p className="text-xl font-bold">Save</p>
-                      </button>
-                      <button
-                        onClick={handleCancel}
-                        className="w-32 text-center mx-2 mb-4 p-2 bg-gray-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
-                      >
-                        <p className="text-xl font-bold">Cancel</p>
-                      </button>
+                      {/* **Inline Image Gallery in Edit Form** */}
+                      {isImageGalleryOpenEdit && (
+                        <InlineImageGallery isEditMode={true} />
+                      )}
                     </div>
                   </div>
+
+                  <div className="mt-4 space-x-2">
+                    <button
+                      onClick={handleSave}
+                      className="w-32 text-center mx-2 mb-4 p-2 bg-blue-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                    >
+                      <p className="text-xl font-bold">Save</p>
+                    </button>
+                    <button
+                      onClick={handleCancel}
+                      className="w-32 text-center mx-2 mb-4 p-2 bg-gray-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                    >
+                      <p className="text-xl font-bold">Cancel</p>
+                    </button>
+                  </div>
+                </div>
               );
             } else {
               return (
-                <div key={index} className="sm:w-[70%] w-[97%] mx-auto bg-white py-10 mt-6 rounded-lg border-2 border-black focus:outline-none placeholder">
-                    <p className="text-4xl font-bold">{msg.name}</p>
-                  <div className=" m-6">
+                <div
+                  key={index}
+                  className="sm:w-[70%] w-[97%] mx-auto bg-white py-10 mt-6 rounded-lg border-2 border-black focus:outline-none placeholder"
+                >
+                  {/* Display Scheduled Message */}
+                  <p className="text-4xl font-bold">{msg.name}</p>
+                  <div className="m-6">
                     {msg.turnon ? (
-                      <span className="w-32 text-center mx-2 mb-4 p-2 bg-green-600 text-white rounded py-3 border-2 border-black">
+                      <span className="w-32 text-center text-lg font-semibold mx-2 mb-4 p-2 bg-green-600 text-white rounded py-3 border-2 border-black">
                         Turn On
                       </span>
                     ) : (
-                      <span className="w-32 text-center mx-2 mb-4 p-2 bg-red-500 text-white rounded py-3 border-2 border-black">
+                      <span className="w-32 text-center text-lg font-semibold mx-2 mb-4 p-2 bg-red-500 text-white rounded py-3 border-2 border-black">
                         Turn OFF
                       </span>
                     )}
                   </div>
+                  {msg.imageturnon !== undefined && (
+                    <div className="m-6">
+                      {msg.imageturnon ? (
+                        <span className="w-32 text-center text-lg font-semibold mx-2 mb-4 p-2 bg-green-600 text-white rounded py-3 border-2 border-black">
+                          Images Enabled
+                        </span>
+                      ) : (
+                        <span className="w-32 text-center text-lg font-semibold mx-2 mb-4 p-2 bg-red-500 text-white rounded py-3 border-2 border-black">
+                          Images Disabled
+                        </span>
+                      )}
+                    </div>
+                  )}
                   {msg.type === "weekly" ? (
                     <p>
                       <strong>Weekly:</strong> {msg.hour?.toString().padStart(2, "0")}:
@@ -622,9 +980,32 @@ function DiscordSchedulerEditor() {
                   ) : (
                     <div>
                       <p className="text-lg font-medium">
-                         Event set on {msg.year}-{msg.month}-{msg.day}
+                        Event set on {msg.year}-{msg.month}-{msg.day}
                       </p>
-                      <p className="text-lg font-semibold">Will remind {msg.daybefore} day before</p>
+                      <p className="text-lg font-semibold">Will remind {msg.daybefore} day(s) before</p>
+                    </div>
+                  )}
+                  {msg.imageturnon && msg.Images && msg.Images.length > 0 && (
+                    <div className="mt-4">
+                      <p className="text-lg font-semibold mb-2">Images:</p>
+                      <div className="flex flex-wrap space-x-2">
+                        {msg.Images.map((img, idx) => (
+                          img.url ? (
+                            <img
+                              key={idx}
+                              src={img.url}
+                              alt={`Scheduled Image ${idx + 1}`}
+                              className={`w-32 h-32 object-cover rounded ${
+                                img.orientation === "vertical" ? "aspect-video" : "aspect-square"
+                              }`}
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = "https://via.placeholder.com/150?text=Image+Not+Found";
+                              }}
+                            />
+                          ) : null
+                        ))}
+                      </div>
                     </div>
                   )}
                   <div className="mt-2">
@@ -648,6 +1029,8 @@ function DiscordSchedulerEditor() {
         </div>
       )}
 
+      {/* Inline Image Gallery Modal */}
+      {/* New Message Form */}
       <div className="mt-8 text-center">
         <button
           type="button"
@@ -659,9 +1042,12 @@ function DiscordSchedulerEditor() {
       </div>
 
       {addNewOpen && (
-        <div className="sm:w-[70%] w-[97%] mx-auto bg-white py-10 mt-6 rounded-lg border-2 border-black focus:outline-none placeholder">
+        <div
+          className="sm:w-[70%] w-[97%] mx-auto bg-white py-10 mt-6 rounded-lg border-2 border-black focus:outline-none placeholder"
+        >
+          {/* New Schedule Form */}
           <div className="space-y-2 mb-4">
-          <h3 className="text-5xl font-semibold mb-4">Add New Schedule Form</h3>
+            <h3 className="text-5xl font-semibold mb-4">Add New Schedule Form</h3>
             <label className="block font-semibold">Name:</label>
             <input
               type="text"
@@ -677,22 +1063,43 @@ function DiscordSchedulerEditor() {
               type="button"
               onClick={toggleNewTurnOn}
               className={`px-4 py-2 rounded text-white ${
-                newMessageData.turnon ? "w-32 text-center mx-2 mb-4 p-2 bg-green-600 text-white rounded py-3 border-2 border-black" : "w-32 text-center mx-2 mb-4 p-2 bg-red-600 text-white rounded py-3 border-2 border-black"
+                newMessageData.turnon
+                  ? "w-32 text-center mx-2 mb-4 p-2 bg-green-600 hover:bg-green-700 rounded py-3 border-2 border-black"
+                  : "w-32 text-center mx-2 mb-4 p-2 bg-red-600 hover:bg-red-700 rounded py-3 border-2 border-black"
               }`}
             >
-              <p className="text-lg font-bold">{newMessageData.turnon ? "Enabled" : "Disabled"}</p>
+              <p className="font-semibold text-lg">{newMessageData.turnon ? "Enabled" : "Disabled"}</p>
+            </button>
+          </div>
+          <div className="space-y-2 mb-4">
+            <label className="block font-semibold">Images Enabled:</label>
+            <button
+              type="button"
+              onClick={toggleNewImageTurnOn}
+              className={`px-4 py-2 rounded text-white ${
+                newMessageData.imageturnon
+                  ? "w-32 text-center mx-2 mb-4 p-2 bg-green-600 hover:bg-green-700 rounded py-3 border-2 border-black"
+                  : "w-32 text-center mx-2 mb-4 p-2 bg-red-600 hover:bg-red-700 rounded py-3 border-2 border-black"
+              }`}
+            >
+              <p className="font-semibold text-lg">{newMessageData.imageturnon ? "Enabled" : "Disabled"}</p>
             </button>
           </div>
           <div className="text-center mb-2">
             <label className="text-xl font-bold mt-2">Discord Inputs</label>
           </div>
           <div>
-          <button
+            <button
               className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-              onClick={() => window.open("https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID#h_01HRSTXPS5CRSRTWYCGPHZQ37H", "_blank")}
+              onClick={() =>
+                window.open(
+                  "https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID#h_01HRSTXPS5CRSRTWYCGPHZQ37H",
+                  "_blank"
+                )
+              }
             >
               How to find IDs on Discord
-          </button>
+            </button>
           </div>
           <div className="relative inline-block text-left mb-4">
             <button
@@ -819,23 +1226,26 @@ function DiscordSchedulerEditor() {
                   </button>
                   {minutesDropdownOpenNew && (
                     <div className="z-10 absolute mt-1 bg-white rounded-lg shadow w-24 p-1">
-                      {["0","5","10","15","20","25","30","35","40","45","50","55"].map((val) => (
-                        <button
-                          key={val}
-                          type="button"
-                          onClick={() => {
-                            handleNewFieldChange("minutes", val);
-                            setMinutesDropdownOpenNew(false);
-                          }}
-                          className="block w-full text-left px-2 py-1 hover:bg-gray-100"
-                        >
-                          {val === "0" ? "00" : val}
-                        </button>
-                      ))}
+                      {["0", "5", "10", "15", "20", "25", "30", "35", "40", "45", "50", "55"].map(
+                        (val) => (
+                          <button
+                            key={val}
+                            type="button"
+                            onClick={() => {
+                              handleNewFieldChange("minutes", val);
+                              setMinutesDropdownOpenNew(false);
+                            }}
+                            className="block w-full text-left px-2 py-1 hover:bg-gray-100"
+                          >
+                            {val === "0" ? "00" : val}
+                          </button>
+                        )
+                      )}
                     </div>
                   )}
                 </div>
               </div>
+              <div className="mx-auto items-center space-x-2 mt-2">
                 <label className="text-lg font-semibold">Day:</label>
                 <div className="relative inline-block text-left">
                   <button
@@ -847,7 +1257,7 @@ function DiscordSchedulerEditor() {
                   </button>
                   {dayOfWeekDropdownOpenNew && (
                     <div className="z-10 absolute mt-1 bg-white rounded-lg shadow w-24 p-1">
-                      {["0","1","2","3","4","5","6"].map((val) => (
+                      {["0", "1", "2", "3", "4", "5", "6"].map((val) => (
                         <button
                           key={val}
                           type="button"
@@ -864,6 +1274,7 @@ function DiscordSchedulerEditor() {
                   )}
                 </div>
               </div>
+            </div>
           )}
           {newMessageData.type === "date" && (
             <div className="border p-2 rounded bg-white mb-4">
@@ -877,7 +1288,7 @@ function DiscordSchedulerEditor() {
               />
               <label className="block font-semibold mb-2 mt-6">Day Before:</label>
               <div className="mx-auto space-x-1">
-                {/* Minus Button */}
+                {/* Plus Button */}
                 <button
                   type="button"
                   className="bg-green-500 text-white font-bold rounded-l hover:bg-green-600 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
@@ -894,7 +1305,7 @@ function DiscordSchedulerEditor() {
                   className="placeholder font-bold sm:w-54 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
                 />
 
-                {/* Plus Button */}
+                {/* Minus Button */}
                 <button
                   type="button"
                   className="bg-red-500 text-white font-bold rounded-l hover:bg-red-600 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
@@ -908,7 +1319,7 @@ function DiscordSchedulerEditor() {
             </div>
           )}
           <div className="border p-2 rounded bg-white mb-4">
-          <label className="block text-xl font-bold mt-2">Message Content:</label>
+            <label className="block text-xl font-bold mt-2">Message Content:</label>
             <textarea
               rows={6}
               value={newMessageData.messageContent}
@@ -916,8 +1327,9 @@ function DiscordSchedulerEditor() {
               className="border p-1 w-full"
             />
           </div>
+          {/* **Automatic Responses Section in New Message Form** */}
           <div className="border p-2 mb-4 bg-white">
-          <label className="block text-xl font-bold mt-2">Automatic Responses:</label>
+            <label className="block text-xl font-bold mt-2">Automatic Responses:</label>
             {newMessageData.automaticResponses.map((resp, idx) => (
               <div key={idx} className="border p-2 mb-2 rounded">
                 <label className="block text-lg font-semibold">Title:</label>
@@ -926,35 +1338,73 @@ function DiscordSchedulerEditor() {
                   placeholder="Text"
                   value={resp.title}
                   onChange={(e) => handleNewAutoRespFieldChange(idx, "title", e.target.value)}
-                  className="placeholder font-bold sm:w-96 mx-auto mt-2 text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                  className="placeholder font-bold sm:w-96 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
                 />
-                <label className="block text-lg mt-2 font-semibold">Content:</label>
+                <label className="block text-lg font-semibold mt-2">Content:</label>
                 {resp ? (
                   <EditableTextArea
                     idx={idx}
                     resp={resp}
-                    handleNewAutoRespFieldChange={handleNewAutoRespFieldChange}
+                    handleNewAutoRespFieldChange={handleAutomaticResponseChange}
                     RoleIDfetcher={newMessageData.roleId}
                   />
                 ) : (
                   <p>Loading data...</p>
                 )}
-                <div>
                 <button
                   onClick={() => handleRemoveAutomaticResponseNew(idx)}
-                  className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-red-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                  className="sm:w-96 w-[85%] text-center mt-4 p-2 bg-red-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
                 >
-                  <p className="text-xl font-bold">Remove</p>
+                  <p className="text-xl font-bold">Remove Automatic Response</p>
                 </button>
-                </div>
               </div>
             ))}
             <button
               onClick={handleAddAutomaticResponseNew}
-              className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-green-400 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+              className="sm:w-96 w-[85%] text-center mb-8 p-2 bg-green-400 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
             >
               <p className="text-xl font-bold">Add Automatic Response</p>
             </button>
+            {/* **Images Section in New Message Form** */}
+            <div className="border p-2 mb-4 bg-white">
+              <label className="block text-xl font-bold mt-2">Images:</label>
+              {(newMessageData.Images || []).map((img, idx) => (
+                <div key={idx} className="border p-2 mb-2 rounded">
+                  <label className="block text-lg font-semibold">Image URL {idx + 1}:</label>
+                  <input
+                    type="text"
+                    placeholder="Enter Image URL"
+                    value={img.url}
+                    onChange={(e) => {
+                      const updatedImages = [...newMessageData.Images];
+                      updatedImages[idx].url = e.target.value;
+                      setNewMessageData((prev) => ({ ...prev, Images: updatedImages }));
+                    }}
+                    className="placeholder font-bold sm:w-96 mx-auto text-center p-4 rounded py-3 border-2 border-black focus:outline-none"
+                  />
+                  {/* Image Preview */}
+                  {newMessageData.imageturnon && img.url && (
+                    <ImagePreview url={img.url} />
+                  )}
+                  <button
+                    onClick={() => handleRemoveImageNew(idx)}
+                    className="sm:w-96 w-[85%] text-center mt-2 p-2 bg-red-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+                  >
+                    <p className="text-xl font-bold">Remove Image</p>
+                  </button>
+                </div>
+              ))}
+              <button
+                onClick={handleAddImageNew}
+                className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-blue-500 text-white rounded py-3 border-2 border-black shadow-custom hover:shadow-none transition-all hover:translate-x-1 translate-y-1"
+              >
+                <p className="text-xl font-bold">Select Images from Gallery</p>
+              </button>
+              {/* **Inline Image Gallery in New Message Form** */}
+              {isImageGalleryOpenNew && (
+                <InlineImageGallery isEditMode={false} />
+              )}
+            </div>
           </div>
           <button
             onClick={handleCreateNewMessage}
