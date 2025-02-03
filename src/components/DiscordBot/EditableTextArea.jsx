@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import { useRef, useState, useEffect } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkBreaks from "remark-breaks";
 
 export default function EditableTextArea({
   idx,
@@ -8,8 +9,27 @@ export default function EditableTextArea({
   handleNewAutoRespFieldChange,
   RoleIDfetcher,
 }) {
+  // Define preset messages before they are used
+  const presetMessages = [
+    { label: "Applied Role ID", value: `<@&${RoleIDfetcher}>` },
+    { label: "Board Members", value: "<@&1146800443696095242>" },
+    { label: "Committee Members", value: "<@&1250096796911538257>" },
+    { label: "Social Media", value: "<@&1299674410155769916>" },
+    { label: "Climbing Committee", value: "<@&1263260259087028324>" },
+    { label: "Climbing", value: "<@&1150784194973274242>" },
+    { label: "Boardgames Committee", value: "<@&1263260051158732952>" },
+    { label: "Boardgamer", value: "<@&1150783727035756654>" },
+    { label: "Swedish fun Committee", value: "<@&1290657070953136128>" },
+    { label: "Swedish fun", value: "<@&1290656892883959849>" },
+    { label: "Crafts Committee", value: "<@&1263260321200607285>" },
+    { label: "Crafts", value: "<@&1150784132511711262>" },
+    { label: "Hiker", value: "<@&1156916936354054144>" },
+    { label: "Dev", value: "<@&1154023087860355184>" },
+  ];
+
   const [textValue, setTextValue] = useState(resp.content || "");
   const textareaRef = useRef(null);
+  const [selectedPreset, setSelectedPreset] = useState(presetMessages[0]);
 
   // Keep local state (textValue) in sync if parent changes resp.content externally
   useEffect(() => {
@@ -46,7 +66,6 @@ export default function EditableTextArea({
     onChangeHandler(newValue);
 
     // (Optional) set cursor position right after inserted text
-    // setTimeout is used so the DOM update completes first
     setTimeout(() => {
       textareaRef.current.selectionStart = textareaRef.current.selectionEnd =
         selectionStart + insertText.length;
@@ -54,17 +73,45 @@ export default function EditableTextArea({
     }, 0);
   };
 
-  // Single onChange handler that updates local state *and* calls parent's callback
+  // Single onChange handler that updates local state and calls parent's callback
   const onChangeHandler = (newText) => {
     setTextValue(newText);
-    // Use the updated `newText` instead of `textValue` here
     handleNewAutoRespFieldChange(idx, "content", newText);
+  };
+
+  // Helper to escape RegExp special characters from a string.
+  const escapeRegExp = (string) => {
+    return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  };
+
+  // Transform role id mentions to their corresponding label.
+  // This function only affects the live preview rendering.
+  const transformRoleMentions = (text) => {
+    let transformedText = text;
+    presetMessages.forEach((preset) => {
+      // Create a global regexp for the role mention
+      const regex = new RegExp(escapeRegExp(preset.value), "g");
+      transformedText = transformedText.replace(regex, preset.label);
+    });
+    return transformedText;
+  };
+
+  // Transform empty lines: replace lines that are completely empty with a non-breaking space.
+  // This ensures that a blank line is rendered in the live preview.
+  const transformEmptyLines = (text) => {
+    return text
+      .split("\n")
+      .map((line) => (line.trim() === "" ? "\u00A0" : line))
+      .join("\n");
   };
 
   return (
     <div className="max-w-xl mx-auto mt-6 p-4 border rounded shadow">
       <h2 className="text-xl font-bold mb-4">AutoRespond Editor</h2>
-      <p className="mb-6 text-gray-400 font-light">This Message will only appear in the `ChannelID` after it been liked by the user. AutoRespond is not required.</p>
+      <p className="mb-6 text-gray-400 font-light">
+        This Message will only appear in the <code>ChannelID</code> after it has been
+        liked by the user. AutoRespond is not required.
+      </p>
 
       {/* Toolbar: Bold, Italic, Inline Code, and Role ID */}
       <div className="flex space-x-2 mb-2">
@@ -90,19 +137,32 @@ export default function EditableTextArea({
         <button
           type="button"
           className="px-3 py-1 bg-gray-700 text-white rounded hover:bg-gray-800"
-          onClick={() => wrapSelectedText("```", "```")}
+          onClick={() => wrapSelectedText("`", "`")}
         >
-          `code`
+          <code>code</code>
         </button>
 
-        {/* Role ID */}
-        <button
-          type="button"
-          className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600"
-          onClick={() => insertTextAtCursor(`<@&${RoleIDfetcher}>`)}
+        {/* Dropdown to select a different preset */}
+        <select
+          className="ml-2 px-2 py-1 border rounded"
+          value={selectedPreset.label}
+          onChange={(e) => {
+            const found = presetMessages.find(
+              (item) => item.label === e.target.value
+            );
+            if (found) {
+              setSelectedPreset(found);
+              // Immediately insert the selected preset's value
+              insertTextAtCursor(found.value);
+            }
+          }}
         >
-          Role ID
-        </button>
+          {presetMessages.map((preset, index) => (
+            <option key={index} value={preset.label}>
+              {preset.label}
+            </option>
+          ))}
+        </select>
       </div>
 
       {/* Textarea for raw Markdown */}
@@ -110,7 +170,7 @@ export default function EditableTextArea({
         ref={textareaRef}
         rows={5}
         className="w-full p-2 mb-4 border-2 border-gray-300 focus:outline-none focus:border-blue-400 rounded"
-        placeholder="Live Preview"
+        placeholder="Enter markdown here..."
         value={textValue}
         onChange={(e) => onChangeHandler(e.target.value)}
       />
@@ -118,7 +178,9 @@ export default function EditableTextArea({
       {/* Live Preview */}
       <h3 className="font-bold mb-2">Live Preview:</h3>
       <div className="p-2 border rounded text-left bg-gray-100">
-        <ReactMarkdown>{textValue.replace(/\n/g, "  \n")}</ReactMarkdown>
+        <ReactMarkdown remarkPlugins={[remarkBreaks]}>
+          {transformEmptyLines(transformRoleMentions(textValue))}
+        </ReactMarkdown>
       </div>
     </div>
   );
