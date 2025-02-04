@@ -8,6 +8,8 @@ export default function EditableTextArea({
   resp,
   handleNewAutoRespFieldChange,
   RoleIDfetcher,
+  textDescrition,
+  header
 }) {
   // Define preset messages before they are used
   const presetMessages = [
@@ -26,6 +28,7 @@ export default function EditableTextArea({
     { label: "Hiker", value: "<@&1156916936354054144>" },
     { label: "Dev", value: "<@&1154023087860355184>" },
   ];
+    
 
   const [textValue, setTextValue] = useState(resp.content || "");
   const textareaRef = useRef(null);
@@ -107,10 +110,9 @@ export default function EditableTextArea({
 
   return (
     <div className="max-w-xl mx-auto mt-6 p-4 border rounded shadow">
-      <h2 className="text-xl font-bold mb-4">AutoRespond Editor</h2>
-      <p className="mb-6 text-gray-400 font-light">
-        This Message will only appear in the <code>ChannelID</code> after it has been
-        liked by the user. AutoRespond is not required.
+      <h2 className="text-xl font-bold mb-4">{header}</h2>
+      <p className="mb-6 p-4 text-gray-400 font-light">
+        {textDescrition}
       </p>
 
       {/* Toolbar: Bold, Italic, Inline Code, and Role ID */}
@@ -144,7 +146,7 @@ export default function EditableTextArea({
 
         {/* Dropdown to select a different preset */}
         <select
-          className="ml-2 px-2 py-1 border rounded"
+          className="ml-2 w-32 px-2 py-1 border rounded"
           value={selectedPreset.label}
           onChange={(e) => {
             const found = presetMessages.find(

@@ -24,7 +24,7 @@ function DiscordSchedulerEditor() {
     daybefore: "0",
     seconds: "0",
     timezone: "Europe/Stockholm",
-    messageContent: `Sup all <@&COMMITTEE_ROLE_ID>,\n\n**Friendly reminder:** Need to make a post on social media!\n\nReact to this message\n❤️ - Automatically send a message in Discord\n\n*Not necessary to react; you can send message manually.*`,
+    messageContent: "`Example`\n\nTo use **Bold** text you need to wrap a text with a double \" * \"\nTo use _Italic_ text you need to wrap a text with a single \" _ \"\nTo make text more stand out use `code` by wrapping with single \" ' \"\n\nYou can combine both **_Bold and Italic_**\n\nBy selecting a **Role** you tagging a selected role in _Discord_, to give more attention to the message.\n\n**\"Applied Role ID\"** will select a **role** you entered in **Role ID** section in \"Discord Inputs\"\n",
     automaticResponses: [{ title: "", content: "" }],
     Images: [],
   });
@@ -54,6 +54,10 @@ function DiscordSchedulerEditor() {
   // Dropdown toggles for picking categories
   const [categoryDropdownOpenNew, setCategoryDropdownOpenNew] = useState(false);
   const [categoryDropdownOpenEdit, setCategoryDropdownOpenEdit] = useState(false);
+
+  const contetntText = `This Message will only appear in the "Channel ID" when your time was set.`
+  const responseText = `This Message will only appear in the "Response Channel ID" after it has been
+        liked by the user. AutoRespond is not required.`
 
   useEffect(() => {
     fetchScheduledMessages();
@@ -524,31 +528,10 @@ function DiscordSchedulerEditor() {
       }
     };
 
-    const [countdown, setCountdown] = useState(0);
-
-    const handleButtonClick = (action) => {
-      if (countdown > 0) return;
-
-      setCountdown(2);
-
-      let interval = setInterval(() => {
-        setCountdown((prev) => {
-          const newVal = prev - 1;
-          if (newVal <= 0) {
-            clearInterval(interval);
-            action();
-            return 0;
-          }
-          return newVal;
-        });
-      }, 1000);
-    };
-
     return (
       <div className="mt-4">
         <h4 className="text-lg font-semibold mb-2">
-          {imageCategory ? imageCategory : "Available Images"} (page{" "}
-          {currentPage + 1})
+          {imageCategory ? imageCategory : "Available Images"}
         </h4>
         {imageError ? (
           <p className="text-red-500">{imageError}</p>
@@ -558,8 +541,7 @@ function DiscordSchedulerEditor() {
           <>
             <div className="flex px-4 justify-between items-center mb-4">
               <button
-                onClick={() => handleButtonClick(handleBack)}
-                disabled={currentPage === 0 || countdown > 0}
+                onClick={handleBack}
                 className={`w-32 text-center mx-2 mb-4 p-2 bg-gray-300 hover:bg-gray-700 rounded py-3 border-2 border-black ${
                   currentPage === 0
                     ? "opacity-50 cursor-not-allowed"
@@ -568,12 +550,8 @@ function DiscordSchedulerEditor() {
               >
                 <p className="font-semibold text-lg">Back</p>
               </button>
-              <div className="w-16 text-center font-bold text-xl">
-                {countdown > 0 ? countdown : ""}
-              </div>
               <button
-                onClick={() => handleButtonClick(handleNext)}
-                disabled={endIndex >= filteredImages.length || countdown > 0}
+                onClick={handleNext}
                 className={`w-32 text-center mx-2 mb-4 p-2 bg-gray-300 hover:bg-gray-700 rounded py-3 border-2 border-black ${
                   endIndex >= filteredImages.length
                     ? "opacity-50 cursor-not-allowed"
@@ -592,6 +570,7 @@ function DiscordSchedulerEditor() {
                   <div key={idx} className="border p-2 rounded">
                     <img
                       src={img.Imgurl}
+                      loading="lazy"
                       alt={`Pic ${idx + 1}`}
                       className={`w-full h-32 object-cover rounded ${
                         img.orientation === "vertical"
@@ -601,7 +580,7 @@ function DiscordSchedulerEditor() {
                       onError={(e) => {
                         e.target.onerror = null;
                         e.target.src =
-                          "https://via.placeholder.com/150?text=Image+Not+Found";
+                          "https://welcome.cultureconnection.se/assets/CCLogo-D0TRwCJL.png";
                       }}
                     />
                     {isSelected ? (
@@ -923,7 +902,7 @@ function DiscordSchedulerEditor() {
                               </p>
                             </button>
                             {dayOfWeekDropdownOpenEdit && (
-                              <div className="z-10 absolute mt-1 bg-white rounded-lg shadow w-24 p-1">
+                              <div className="z-10 absolute mt-1 bg-white rounded-lg shadow p-2">
                                 {["0", "1", "2", "3", "4", "5", "6"].map(
                                   (val) => (
                                     <button
@@ -1009,6 +988,8 @@ function DiscordSchedulerEditor() {
                           handleFieldChange("messageContent", newText)
                         }
                         RoleIDfetcher={editData.roleId}
+                        textDescrition={contetntText}
+                        header={"Message for Admins"}
                       />
                     </div>
                     {/* --- End of Message Content update --- */}
@@ -1016,6 +997,9 @@ function DiscordSchedulerEditor() {
                     <div className="mt-4 border-t pt-2">
                       <p className="text-lg font-semibold mb-4">
                         Automatic Responses:
+                      </p>
+                      <p className="mb-6 p-4 text-gray-400 font-light">
+                          This section not mendatory to be filled out, you can add multile Automatic Response and a system will choose one randomly. This message will appear in Response Channel ID.
                       </p>
                       {(editData.automaticResponses || []).map((resp, i) => (
                         <div
@@ -1049,6 +1033,8 @@ function DiscordSchedulerEditor() {
                                 handleAutomaticResponseChange
                               }
                               RoleIDfetcher={editData.roleId}
+                              textDescrition={responseText}
+                              header={"Message for users"}
                             />
                           ) : (
                             <p>Loading data...</p>
@@ -1071,11 +1057,14 @@ function DiscordSchedulerEditor() {
                       >
                         <p className="text-xl font-bold">
                           Add Automatic Response
-                        </p>
+                        </p>       
                       </button>
                       {/* Images Section */}
                       <div className="mt-4 border-t pt-2">
                         <p className="text-lg font-semibold mb-4">Images:</p>
+                        <p className="mb-6 p-4 text-gray-400 font-light">
+                          You can select multiple pictures and system will randomly choose one from the list, if you would like to put random picture from internet, just change a Url with a your own link
+                        </p>
                         {(editData.Images || []).map((img, i) => (
                           <div
                             key={i}
@@ -1122,7 +1111,7 @@ function DiscordSchedulerEditor() {
                             <p className="text-xl font-bold">
                               {imageCategoryEdit
                                 ? imageCategoryEdit
-                                : "Select Images from Gallery"}
+                                : "Select Images"}
                             </p>
                           </button>
                           {categoryDropdownOpenEdit && (
@@ -1141,6 +1130,7 @@ function DiscordSchedulerEditor() {
                                   onClick={() => {
                                     setImageCategoryEdit(cat);
                                     setIsImageGalleryOpenEdit(true);
+                                    setCurrentPageEdit(0);
                                     setCategoryDropdownOpenEdit(false);
                                   }}
                                   className="block w-full text-left px-4 py-2 hover:bg-gray-100"
@@ -1225,13 +1215,14 @@ function DiscordSchedulerEditor() {
                     msg.Images &&
                     msg.Images.length > 0 && (
                       <div className="mt-4">
-                        <p className="text-lg font-semibold mb-2">Images:</p>
+                        <p className="text-lg font-semibold mb-2">Selected Images</p>
                         <div className="flex flex-wrap justify-center space-x-2">
                           {msg.Images.map((img, idx) =>
                             img.Imgurl ? (
                               <img
                                 key={idx}
                                 src={img.Imgurl}
+                                loading="lazy"
                                 alt={`Scheduled Image ${idx + 1}`}
                                 className={`w-32 h-32 object-cover rounded ${
                                   img.orientation === "vertical"
@@ -1241,7 +1232,7 @@ function DiscordSchedulerEditor() {
                                 onError={(e) => {
                                   e.target.onerror = null;
                                   e.target.src =
-                                    "https://via.placeholder.com/150?text=Image+Not+Found";
+                                    "https://welcome.cultureconnection.se/assets/CCLogo-D0TRwCJL.png";
                                 }}
                               />
                             ) : null
@@ -1537,7 +1528,7 @@ function DiscordSchedulerEditor() {
                     </p>
                   </button>
                   {dayOfWeekDropdownOpenNew && (
-                    <div className="z-10 absolute bg-white rounded-lg shadow w-24 p-1 mt-1">
+                    <div className="z-10 absolute bg-white p-2 rounded-lg shadow mt-1">
                       {["0", "1", "2", "3", "4", "5", "6"].map((val) => (
                         <button
                           key={val}
@@ -1620,6 +1611,8 @@ function DiscordSchedulerEditor() {
                 handleNewFieldChange("messageContent", newText)
               }
               RoleIDfetcher={newMessageData.roleId}
+              textDescrition={contetntText}
+              header={"Message for Admins"}
             />
           </div>
           {/* --- End of Message Content update --- */}
@@ -1627,6 +1620,9 @@ function DiscordSchedulerEditor() {
             <label className="block text-xl font-bold mt-2">
               Automatic Responses:
             </label>
+            <p className="mb-6 p-4 text-gray-400 font-light">
+              This section not mendatory to be filled out, you can add multile Automatic Response and a system will choose one randomly. This message will appear in Response Channel ID.
+            </p>
             {newMessageData.automaticResponses.map((resp, idx) => (
               <div key={idx} className="border p-2 mb-2 rounded">
                 <label className="block text-lg font-semibold">
@@ -1654,6 +1650,8 @@ function DiscordSchedulerEditor() {
                     resp={resp}
                     handleNewAutoRespFieldChange={handleAutomaticResponseChange}
                     RoleIDfetcher={newMessageData.roleId}
+                    textDescrition={responseText}
+                    header={"Message for Users"}
                   />
                 ) : (
                   <p>Loading data...</p>
@@ -1676,6 +1674,9 @@ function DiscordSchedulerEditor() {
             </button>
             <div className="border p-2 mb-4 bg-white">
               <label className="block text-xl font-bold mt-2">Images:</label>
+              <p className="mb-6 p-4 text-gray-400 font-light">
+                          You can select multiple pictures and system will randomly choose one from the list, if you would like to put random picture from internet, just change a Url with a your own link.
+                        </p>
               {(newMessageData.Images || []).map((img, idx) => (
                 <div key={idx} className="border p-2 mb-2 rounded">
                   <label className="block text-lg font-semibold">
@@ -1712,12 +1713,12 @@ function DiscordSchedulerEditor() {
                   onClick={() =>
                     setCategoryDropdownOpenNew((prev) => !prev)
                   }
-                  className="sm:w-96 w-[85%] text-center mb-4 p-2 bg-blue-500 text-white rounded py-3 border-2 border-black"
+                  className="sm:w-96 text-center mb-4 p-2 bg-blue-500 text-white rounded py-3 border-2 border-black"
                 >
                   <p className="text-xl font-bold">
                     {imageCategoryNew
                       ? imageCategoryNew
-                      : "Select Images from Gallery"}
+                      : "Select Images"}
                   </p>
                 </button>
                 {categoryDropdownOpenNew && (
@@ -1735,6 +1736,7 @@ function DiscordSchedulerEditor() {
                         onClick={() => {
                           setImageCategoryNew(cat);
                           setIsImageGalleryOpenNew(true);
+                          setCurrentPageEdit(0);
                           setCategoryDropdownOpenNew(false);
                         }}
                         className="block w-full text-left px-4 py-2 hover:bg-gray-100"
